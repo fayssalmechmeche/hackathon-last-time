@@ -21,10 +21,14 @@ authRouter.post("/register", async (c) => {
 
   const { data } = parseResult;
 
-  const result = await handleRegister(data);
+  const { success, token } = await handleRegister(data);
+
+  if (!success) {
+    throw new HTTPException(status.CONFLICT);
+  }
 
   c.status(status.CREATED);
-  return c.json(result);
+  return c.json({ token });
 });
 
 authRouter.post("/login", async (c) => {

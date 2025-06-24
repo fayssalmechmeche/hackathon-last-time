@@ -5,7 +5,7 @@ export interface UserTable {
   created_at: Date;
 }
 
-export type UserTableInsert = Omit<UserTable, "id" | "created_at">;
+export type UserTableInsert = Omit<UserTable, "created_at">;
 
 export interface DB {
   users: UserTable;

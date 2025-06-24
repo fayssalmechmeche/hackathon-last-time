@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { db } from "../db/client.js";
 import type { UserTable, UserTableInsert } from "../db/schema.js";
 
@@ -12,11 +11,15 @@ export async function findUserByEmail(
     .executeTakeFirst();
 }
 
-export async function createUser({ email, password_hash }: UserTableInsert) {
+export async function createUser({
+  id,
+  email,
+  password_hash,
+}: UserTableInsert) {
   return await db
     .insertInto("users")
     .values({
-      id: randomUUID(),
+      id,
       email,
       password_hash,
       created_at: new Date(),

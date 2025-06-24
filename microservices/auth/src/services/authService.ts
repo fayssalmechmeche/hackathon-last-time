@@ -1,5 +1,6 @@
 import { createUser, findUserByEmail } from "../models/user.js";
 import bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
 
 const SALT_ROUNDS = 10;
@@ -23,9 +24,11 @@ export async function handleRegister({
 
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
-  const id = await createUser({ email, password_hash });
+  const id = randomUUID();
 
-  if (!id) {
+  const result = await createUser({ id, email, password_hash });
+
+  if (!result.numInsertedOrUpdatedRows) {
     console.error("Failed to create user:", email);
     return { success: false, token: undefined };
   }
