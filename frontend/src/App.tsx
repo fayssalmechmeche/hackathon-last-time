@@ -1,11 +1,14 @@
-import "./App.css";
+import { createBrowserRouter, RouterProvider } from "react-router";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <h1>Hello World</h1>,
+  },
+]);
 
 function App() {
-  return (
-    <>
-      <h1>Hello World</h1>
-    </>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;
