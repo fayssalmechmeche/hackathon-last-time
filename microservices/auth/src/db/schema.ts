@@ -1,13 +1,7 @@
-export enum UserRole {
-  COMPANY = "company",
-  DEVELOPER = "developer",
-}
-
 export interface UserTable {
   id: string;
   email: string;
   password_hash: string;
-  role: UserRole;
   created_at: Date;
 }
 

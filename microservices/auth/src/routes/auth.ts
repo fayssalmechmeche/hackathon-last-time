@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { handleRegister, handleLogin } from "../services/authService.js";
-import { UserRole } from "../db/schema.js";
 import { HTTPException } from "hono/http-exception";
 import status from "http-status";
 
@@ -12,7 +11,6 @@ authRouter.post("/register", async (c) => {
   const schema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
-    role: z.nativeEnum(UserRole),
   });
 
   const parseResult = schema.safeParse(body);
@@ -25,6 +23,7 @@ authRouter.post("/register", async (c) => {
 
   const result = await handleRegister(data);
 
+  c.status(status.CREATED);
   return c.json(result);
 });
 
@@ -37,5 +36,6 @@ authRouter.post("/login", async (c) => {
     throw new HTTPException(status.UNAUTHORIZED);
   }
 
+  c.status(status.OK);
   return c.json({ token });
 });

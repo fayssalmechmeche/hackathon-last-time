@@ -1,7 +1,7 @@
 services:
   db-auth:
     image: postgres:17
-    contaienr_name: db-auth
+    container_name: db-auth
     environment:
       POSTGRES_USER: ${AUTH_POSTGRES_USER}
       POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
@@ -10,6 +10,7 @@ services:
       - "5432:5432"
     volumes:
       - db-auth-data:/var/lib/postgresql/data
+      - ./001_create_users.sql:/docker-entrypoint-initdb.d/init.sql
 
 volumes:
   db-auth-data:

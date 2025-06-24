@@ -12,18 +12,13 @@ export async function findUserByEmail(
     .executeTakeFirst();
 }
 
-export async function createUser({
-  email,
-  password_hash,
-  role,
-}: UserTableInsert) {
+export async function createUser({ email, password_hash }: UserTableInsert) {
   return await db
     .insertInto("users")
     .values({
       id: randomUUID(),
       email,
       password_hash,
-      role,
       created_at: new Date(),
     })
     .executeTakeFirst();
