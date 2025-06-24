@@ -16,32 +16,47 @@ export async function handleRegister({
   email: string;
   password: string;
   role: UserRole;
-}) {
+}): Promise<{ success: boolean; token: string | undefined }> {
   const existing = await findUserByEmail(email);
-  if (existing) throw new Error("email_already_exists");
+
+  if (existing) {
+    console.log("User already exists:", email);
+    return { success: false, token: undefined };
+  }
 
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
 
   const id = await createUser({ email, password_hash, role });
 
   if (!id) {
-    throw new Error("error_creating_user");
+    console.error("Failed to create user:", email);
+    return { success: false, token: undefined };
   }
 
   const token = jwt.sign({ id, role }, JWT_SECRET, { expiresIn: EXPIRES_IN });
-  return { token };
+  return { success: true, token };
 }
 
-export async function handleLogin(email: string, password: string) {
+export async function handleLogin(
+  email: string,
+  password: string,
+): Promise<{ success: boolean; token: string | undefined }> {
   const user = await findUserByEmail(email);
 
-  if (!user) throw new Error("uer_not_found");
+  if (!user) {
+    console.log("User not found:", email);
+    return { success: false, token: undefined };
+  }
 
   const valid = await bcrypt.compare(password, user.password_hash);
-  if (!valid) throw new Error("user_not_found");
+  if (!valid) {
+    console.log("Invalid password for user:", email);
+    return { success: false, token: undefined };
+  }
 
   const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
     expiresIn: "7d",
   });
-  return token;
+
+  return { success: true, token };
 }
