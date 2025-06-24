@@ -2,23 +2,40 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
+import Layout from "./components/Layout";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <LoginPage />,
+    element: (
+      <Layout>
+        <LoginPage />
+      </Layout>
+    ),
   },
   {
     path: "/login",
-    element: <LoginPage />,
+    element: (
+      <Layout>
+        <LoginPage />
+      </Layout>
+    ),
   },
   {
     path: "/register",
-    element: <RegisterPage />,
+    element: (
+      <Layout>
+        <RegisterPage />
+      </Layout>
+    ),
   },
   {
     path: "/register/profile",
-    element: <RegisterProfilePage />,
+    element: (
+      <Layout>
+        <RegisterProfilePage />
+      </Layout>
+    ),
   },
 ]);
 
