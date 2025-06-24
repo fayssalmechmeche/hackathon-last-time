@@ -1,5 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
-import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
@@ -7,35 +7,19 @@ import RegisterProfilePage from "./pages/RegisterProfilePage";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <Layout>
-        <LoginPage />
-      </Layout>
-    ),
+    element: <HomePage />,
   },
   {
     path: "/login",
-    element: (
-      <Layout>
-        <LoginPage />
-      </Layout>
-    ),
+    element: <LoginPage />,
   },
   {
     path: "/register",
-    element: (
-      <Layout>
-        <RegisterPage />
-      </Layout>
-    ),
+    element: <RegisterPage />,
   },
   {
     path: "/register/profile",
-    element: (
-      <Layout>
-        <RegisterProfilePage />
-      </Layout>
-    ),
+    element: <RegisterProfilePage />,
   },
 ]);
 
