@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "../components/ui/button";
 import {
@@ -16,18 +16,65 @@ export default function RegisterProfilePage() {
   const [jobTitle, setJobTitle] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Check for cached registration data from step 1
+    const cachedData = sessionStorage.getItem("registrationData");
+    if (!cachedData) {
+      // No cached data, redirect to step 1
+      navigate("/register");
+      return;
+    }
+
+    try {
+      const { email, password } = JSON.parse(cachedData);
+      // Simple validation
+      if (
+        !email ||
+        !email.includes("@") ||
+        !password ||
+        password.length === 0
+      ) {
+        // Invalid cached data, redirect to step 1
+        sessionStorage.removeItem("registrationData");
+        navigate("/register");
+      }
+    } catch {
+      // Invalid JSON, redirect to step 1
+      sessionStorage.removeItem("registrationData");
+      navigate("/register");
+    }
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      // API call will be implemented here
-      console.log("Registration step 2:", { fullName, jobTitle });
+      // Retrieve cached data from step 1
+      const cachedData = sessionStorage.getItem("registrationData");
+      if (!cachedData) {
+        navigate("/register");
+        return;
+      }
 
-      // On success, redirect to login or dashboard
-      navigate("/login");
+      const { email, password } = JSON.parse(cachedData);
+
+      // Single API call with all registration data
+      console.log("Complete registration:", {
+        email,
+        password,
+        fullName,
+        jobTitle,
+      });
+
+      // Clear cached data after successful registration
+      sessionStorage.removeItem("registrationData");
+
+      // Future-proof redirect - easy to change later
+      const redirectPath = "/login";
+      navigate(redirectPath);
     } catch (error) {
       // TODO: Handle error
-      console.error("Profile registration error:", error);
+      console.error("Registration error:", error);
     }
   };
 

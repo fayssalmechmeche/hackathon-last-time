@@ -17,7 +17,7 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -25,16 +25,14 @@ export default function RegisterPage() {
       return;
     }
 
-    try {
-      // API call will be implemented here
-      console.log("Registration step 1:", { email, password });
+    // Store registration data in sessionStorage for step 2
+    sessionStorage.setItem(
+      "registrationData",
+      JSON.stringify({ email, password })
+    );
 
-      // On success, navigate to profile step
-      navigate("/register/profile");
-    } catch (error) {
-      // TODO: Handle error
-      console.error("Registration error:", error);
-    }
+    // Navigate to profile step
+    navigate("/register/profile");
   };
 
   return (
@@ -83,7 +81,7 @@ export default function RegisterPage() {
               />
             </div>
             <Button type="submit" className="w-full">
-              S'inscrire
+              Continuer
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
