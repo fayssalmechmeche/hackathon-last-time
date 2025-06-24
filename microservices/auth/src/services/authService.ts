@@ -11,9 +11,13 @@ const EXPIRES_IN = "7d";
 export async function handleRegister({
   email,
   password,
+  full_name,
+  job_title,
 }: {
   email: string;
   password: string;
+  full_name?: string;
+  job_title?: string;
 }): Promise<string> {
   const existing = await findUserByEmail(email);
 
@@ -25,7 +29,13 @@ export async function handleRegister({
 
   const id = randomUUID();
 
-  const result = await createUser({ id, email, password_hash });
+  const result = await createUser({ 
+    id, 
+    email, 
+    password_hash, 
+    full_name: full_name || null,
+    job_title: job_title || null,
+  });
 
   if (!result.numInsertedOrUpdatedRows) {
     throw new Error("user_creation_failed");
@@ -56,4 +66,8 @@ export async function handleLogin(
   });
 
   return token;
+}
+
+export function verifyJWT(token: string): { id: string } {
+  return jwt.verify(token, JWT_SECRET) as { id: string };
 }
