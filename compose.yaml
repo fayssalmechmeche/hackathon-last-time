@@ -1,0 +1,16 @@
+services:
+  db-auth:
+    image: postgres:17
+    container_name: db-auth
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-services}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-services}
+      POSTGRES_DB: ${POSTGRES_DB:-services}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-auth-data:/var/lib/postgresql/data
+
+volumes:
+  db-auth-data:
+    driver: local
