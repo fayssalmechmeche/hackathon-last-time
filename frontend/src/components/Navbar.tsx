@@ -7,8 +7,8 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="h-16 bg-background border-b border-border px-4 flex items-center justify-between">
-      <div className="text-lg font-semibold text-foreground">Nexolve</div>
+    <nav className="h-16 bg-background px-8 flex items-center justify-between">
+      <div className="text-xl text-foreground">Nexolve</div>
 
       {/* Desktop menu */}
       <div className="hidden sm:flex gap-4">
