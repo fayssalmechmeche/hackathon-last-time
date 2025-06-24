@@ -1,11 +1,11 @@
 services:
   db-auth:
     image: postgres:17
-    container_name: db-auth
+    contaienr_name: db-auth
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-services}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-services}
-      POSTGRES_DB: ${POSTGRES_DB:-services}
+      POSTGRES_USER: ${AUTH_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${AUTH_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${AUTH_POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:

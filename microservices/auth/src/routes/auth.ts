@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { z } from "zod";
 import { handleRegister, handleLogin } from "../services/authService.js";
+import { UserRole } from "../db/schema.js";
 
 export const authRouter = new Hono();
 
@@ -9,9 +10,10 @@ authRouter.post("/register", async (c) => {
   const schema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
+    role: z.nativeEnum(UserRole),
   });
-  const { email, password } = schema.parse(body);
-  const result = await handleRegister(email, password);
+  const data = schema.parse(body);
+  const result = await handleRegister(data);
   return c.json(result);
 });
 

@@ -8,11 +8,18 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.14.4",
+    "bcryptjs": "^3.0.2",
+    "dotenv": "^16.5.0",
     "hono": "^4.8.2",
+    "jsonwebtoken": "^9.0.2",
+    "kysely": "^0.28.2",
+    "pg": "^8.16.2",
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.11.17",
+    "@types/pg": "^8.15.4",
     "tsx": "^4.7.1",
     "typescript": "^5.8.3"
   }
