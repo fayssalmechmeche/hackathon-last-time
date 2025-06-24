@@ -1,7 +1,7 @@
-import { createUser, findUserByEmail } from "../models/user.js";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
+import { createUser, findUserByEmail } from "../models/user.js";
 
 const SALT_ROUNDS = 10;
 
@@ -14,12 +14,11 @@ export async function handleRegister({
 }: {
   email: string;
   password: string;
-}): Promise<{ success: boolean; token: string | undefined }> {
+}): Promise<string> {
   const existing = await findUserByEmail(email);
 
   if (existing) {
-    console.log("User already exists:", email);
-    return { success: false, token: undefined };
+    throw new Error("user_already_exists");
   }
 
   const password_hash = await bcrypt.hash(password, SALT_ROUNDS);
@@ -29,35 +28,32 @@ export async function handleRegister({
   const result = await createUser({ id, email, password_hash });
 
   if (!result.numInsertedOrUpdatedRows) {
-    console.error("Failed to create user:", email);
-    return { success: false, token: undefined };
+    throw new Error("user_creation_failed");
   }
 
   const token = jwt.sign({ id }, JWT_SECRET, { expiresIn: EXPIRES_IN });
 
-  return { success: true, token };
+  return token;
 }
 
 export async function handleLogin(
   email: string,
-  password: string,
-): Promise<{ success: boolean; token: string | undefined }> {
+  password: string
+): Promise<string> {
   const user = await findUserByEmail(email);
 
   if (!user) {
-    console.log("User not found:", email);
-    return { success: false, token: undefined };
+    throw new Error("user_not_found");
   }
 
   const valid = await bcrypt.compare(password, user.password_hash);
   if (!valid) {
-    console.log("Invalid password for user:", email);
-    return { success: false, token: undefined };
+    throw new Error("invalid_password");
   }
 
   const token = jwt.sign({ id: user.id }, JWT_SECRET, {
     expiresIn: "7d",
   });
 
-  return { success: true, token };
+  return token;
 }
