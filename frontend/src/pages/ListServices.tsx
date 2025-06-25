@@ -4,7 +4,6 @@ import {
   Image,
   Search,
   Video,
-  Plus,
   Edit,
   Trash2,
   ExternalLink,
@@ -18,6 +17,86 @@ import {
   Settings,
   Link,
   Bot,
+  Code,
+  Database,
+  Cloud,
+  Zap,
+  Globe,
+  Lock,
+  Mail,
+  Phone,
+  Music,
+  Camera,
+  Palette,
+  Monitor,
+  Smartphone,
+  Headphones,
+  Gamepad2,
+  Car,
+  Plane,
+  Home,
+  ShoppingCart,
+  BookOpen,
+  Briefcase,
+  Users,
+  MessageSquare,
+  Bell,
+  Clock,
+  MapPin,
+  Wifi,
+  Battery,
+  Volume2,
+  Sun,
+  Moon,
+  Thermometer,
+  Umbrella,
+  Snowflake,
+  Flower,
+  TreePine,
+  Mountain,
+  Waves,
+  Fish,
+  Bug,
+  Lightbulb,
+  Wrench,
+  Scissors,
+  Brush,
+  Pen,
+  Calculator,
+  Ruler,
+  Target,
+  Award,
+  Trophy,
+  Gift,
+  Cake,
+  Pizza,
+  Truck,
+  Ship,
+  Rocket,
+  Satellite,
+  Compass,
+  Map,
+  Flag,
+  Key,
+  Shield,
+  Eye,
+  Download,
+  Share,
+  Copy,
+  Archive,
+  Folder,
+  Tag,
+  Bookmark,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Info,
+  HelpCircle,
+  Cpu,
+  Heart,
+  Star,
+  Coffee,
+  Plus,
 } from "lucide-react";
 
 interface Service {
@@ -30,6 +109,7 @@ interface Service {
   type: "automatic" | "manual";
   swaggerUrl?: string;
   fields?: FormField[];
+  iconName?: string;
 }
 
 interface FormField {
@@ -46,6 +126,9 @@ interface FormData {
   description: string;
   swaggerUrl: string;
   fields: FormField[];
+  iconName: string;
+  status: "active" | "inactive";
+  gradient: string;
 }
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -73,7 +156,158 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => (
+// Liste des icônes disponibles
+const availableIcons = [
+  { name: "FileText", icon: FileText, label: "Document" },
+  { name: "Image", icon: Image, label: "Image" },
+  { name: "Video", icon: Video, label: "Vidéo" },
+  { name: "Code", icon: Code, label: "Code" },
+  { name: "Database", icon: Database, label: "Base de données" },
+  { name: "Cloud", icon: Cloud, label: "Cloud" },
+  { name: "Zap", icon: Zap, label: "Énergie" },
+  { name: "Globe", icon: Globe, label: "Web" },
+  { name: "Lock", icon: Lock, label: "Sécurité" },
+  { name: "Mail", icon: Mail, label: "Email" },
+  { name: "Phone", icon: Phone, label: "Téléphone" },
+  { name: "Music", icon: Music, label: "Musique" },
+  { name: "Camera", icon: Camera, label: "Appareil photo" },
+  { name: "Palette", icon: Palette, label: "Design" },
+  { name: "Cpu", icon: Cpu, label: "Processeur" },
+  { name: "Monitor", icon: Monitor, label: "Moniteur" },
+  { name: "Smartphone", icon: Smartphone, label: "Smartphone" },
+  { name: "Headphones", icon: Headphones, label: "Casque" },
+  { name: "Gamepad2", icon: Gamepad2, label: "Jeu" },
+  { name: "Car", icon: Car, label: "Voiture" },
+  { name: "Plane", icon: Plane, label: "Avion" },
+  { name: "Home", icon: Home, label: "Maison" },
+  { name: "ShoppingCart", icon: ShoppingCart, label: "Shopping" },
+  { name: "Heart", icon: Heart, label: "Cœur" },
+  { name: "Star", icon: Star, label: "Étoile" },
+  { name: "Coffee", icon: Coffee, label: "Café" },
+  { name: "BookOpen", icon: BookOpen, label: "Livre" },
+  { name: "Briefcase", icon: Briefcase, label: "Travail" },
+  { name: "Users", icon: Users, label: "Utilisateurs" },
+  { name: "MessageSquare", icon: MessageSquare, label: "Message" },
+  { name: "Bell", icon: Bell, label: "Notification" },
+  { name: "Clock", icon: Clock, label: "Temps" },
+  { name: "MapPin", icon: MapPin, label: "Localisation" },
+  { name: "Wifi", icon: Wifi, label: "WiFi" },
+  { name: "Battery", icon: Battery, label: "Batterie" },
+  { name: "Volume2", icon: Volume2, label: "Volume" },
+  { name: "Sun", icon: Sun, label: "Soleil" },
+  { name: "Moon", icon: Moon, label: "Lune" },
+  { name: "Thermometer", icon: Thermometer, label: "Température" },
+  { name: "Umbrella", icon: Umbrella, label: "Parapluie" },
+  { name: "Snowflake", icon: Snowflake, label: "Neige" },
+  { name: "Flower", icon: Flower, label: "Fleur" },
+  { name: "TreePine", icon: TreePine, label: "Arbre" },
+  { name: "Mountain", icon: Mountain, label: "Montagne" },
+  { name: "Waves", icon: Waves, label: "Vagues" },
+  { name: "Fish", icon: Fish, label: "Poisson" },
+  { name: "Bug", icon: Bug, label: "Bug" },
+  { name: "Lightbulb", icon: Lightbulb, label: "Idée" },
+  { name: "Wrench", icon: Wrench, label: "Outil" },
+  { name: "Scissors", icon: Scissors, label: "Ciseaux" },
+  { name: "Brush", icon: Brush, label: "Pinceau" },
+  { name: "Pen", icon: Pen, label: "Stylo" },
+  { name: "Calculator", icon: Calculator, label: "Calculatrice" },
+  { name: "Ruler", icon: Ruler, label: "Règle" },
+  { name: "Target", icon: Target, label: "Cible" },
+  { name: "Award", icon: Award, label: "Récompense" },
+  { name: "Trophy", icon: Trophy, label: "Trophée" },
+  { name: "Gift", icon: Gift, label: "Cadeau" },
+  { name: "Cake", icon: Cake, label: "Gâteau" },
+  { name: "Pizza", icon: Pizza, label: "Pizza" },
+  { name: "Truck", icon: Truck, label: "Camion" },
+  { name: "Ship", icon: Ship, label: "Bateau" },
+  { name: "Rocket", icon: Rocket, label: "Fusée" },
+  { name: "Satellite", icon: Satellite, label: "Satellite" },
+  { name: "Compass", icon: Compass, label: "Boussole" },
+  { name: "Map", icon: Map, label: "Carte" },
+  { name: "Flag", icon: Flag, label: "Drapeau" },
+  { name: "Key", icon: Key, label: "Clé" },
+  { name: "Shield", icon: Shield, label: "Bouclier" },
+  { name: "Eye", icon: Eye, label: "Œil" },
+  { name: "Download", icon: Download, label: "Téléchargement" },
+  { name: "Share", icon: Share, label: "Partage" },
+  { name: "Copy", icon: Copy, label: "Copie" },
+  { name: "Archive", icon: Archive, label: "Archive" },
+  { name: "Folder", icon: Folder, label: "Dossier" },
+  { name: "Tag", icon: Tag, label: "Tag" },
+  { name: "Bookmark", icon: Bookmark, label: "Signet" },
+  { name: "CheckCircle", icon: CheckCircle, label: "Succès" },
+  { name: "XCircle", icon: XCircle, label: "Erreur" },
+  { name: "AlertCircle", icon: AlertCircle, label: "Alerte" },
+  { name: "Info", icon: Info, label: "Information" },
+  { name: "HelpCircle", icon: HelpCircle, label: "Aide" },
+  { name: "Settings", icon: Settings, label: "Paramètres" },
+];
+
+// Couleurs de gradient disponibles
+const availableGradients = [
+  {
+    name: "Purple to Pink",
+    value: "from-purple-500 to-pink-500",
+    preview: "bg-gradient-to-r from-purple-500 to-pink-500",
+  },
+  {
+    name: "Blue to Purple",
+    value: "from-blue-500 to-purple-500",
+    preview: "bg-gradient-to-r from-blue-500 to-purple-500",
+  },
+  {
+    name: "Green to Blue",
+    value: "from-green-500 to-blue-500",
+    preview: "bg-gradient-to-r from-green-500 to-blue-500",
+  },
+  {
+    name: "Pink to Rose",
+    value: "from-pink-500 to-rose-500",
+    preview: "bg-gradient-to-r from-pink-500 to-rose-500",
+  },
+  {
+    name: "Indigo to Purple",
+    value: "from-indigo-500 to-purple-500",
+    preview: "bg-gradient-to-r from-indigo-500 to-purple-500",
+  },
+  {
+    name: "Blue to Cyan",
+    value: "from-blue-500 to-cyan-500",
+    preview: "bg-gradient-to-r from-blue-500 to-cyan-500",
+  },
+  {
+    name: "Green to Emerald",
+    value: "from-green-500 to-emerald-500",
+    preview: "bg-gradient-to-r from-green-500 to-emerald-500",
+  },
+  {
+    name: "Orange to Red",
+    value: "from-orange-500 to-red-500",
+    preview: "bg-gradient-to-r from-orange-500 to-red-500",
+  },
+  {
+    name: "Yellow to Orange",
+    value: "from-yellow-500 to-orange-500",
+    preview: "bg-gradient-to-r from-yellow-500 to-orange-500",
+  },
+  {
+    name: "Teal to Green",
+    value: "from-teal-500 to-green-500",
+    preview: "bg-gradient-to-r from-teal-500 to-green-500",
+  },
+  {
+    name: "Violet to Purple",
+    value: "from-violet-500 to-purple-500",
+    preview: "bg-gradient-to-r from-violet-500 to-purple-500",
+  },
+  {
+    name: "Cyan to Blue",
+    value: "from-cyan-500 to-blue-500",
+    preview: "bg-gradient-to-r from-cyan-500 to-blue-500",
+  },
+];
+
+const FrontLayout: React.FC<LayoutProps> = ({ children }) => (
   <div className="min-h-screen bg-background">
     <nav className="border-b border-border bg-card">
       <div className="container mx-auto px-4 py-4">
@@ -191,6 +425,7 @@ export default function AdminServicesPage() {
       gradient: "from-pink-500 to-rose-500",
       status: "active",
       type: "automatic",
+      iconName: "FileText",
     },
     {
       id: 2,
@@ -201,6 +436,7 @@ export default function AdminServicesPage() {
       gradient: "from-purple-500 to-indigo-500",
       status: "active",
       type: "manual",
+      iconName: "Image",
     },
     {
       id: 3,
@@ -210,6 +446,7 @@ export default function AdminServicesPage() {
       gradient: "from-blue-500 to-cyan-500",
       status: "inactive",
       type: "automatic",
+      iconName: "Video",
     },
   ]);
 
@@ -223,14 +460,26 @@ export default function AdminServicesPage() {
     description: "",
     swaggerUrl: "",
     fields: [],
+    iconName: "Settings",
+    status: "active",
+    gradient: "from-purple-500 to-pink-500",
   });
   const [searchTerm, setSearchTerm] = useState("");
+  const [iconSearchTerm, setIconSearchTerm] = useState("");
 
   const handleAddService = () => {
     setIsModalOpen(true);
     setModalStep(1);
     setServiceType("");
-    setFormData({ title: "", description: "", swaggerUrl: "", fields: [] });
+    setFormData({
+      title: "",
+      description: "",
+      swaggerUrl: "",
+      fields: [],
+      iconName: "Settings",
+      status: "active",
+      gradient: "from-purple-500 to-pink-500",
+    });
   };
 
   const handleServiceTypeSelect = (type: "automatic" | "manual") => {
@@ -315,14 +564,20 @@ export default function AdminServicesPage() {
   };
 
   const handleSaveService = () => {
+    const selectedIcon = availableIcons.find(
+      (icon) => icon.name === formData.iconName
+    );
+    const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
+
     const newService: Service = {
       id: Date.now(),
       title: formData.title,
       description: formData.description,
       type: serviceType as "automatic" | "manual",
-      status: "active",
-      gradient: "from-indigo-500 to-purple-500",
-      icon: <Settings className="w-8 h-8" />,
+      status: formData.status,
+      gradient: formData.gradient,
+      icon: <IconComponent className="w-8 h-8" />,
+      iconName: formData.iconName,
       ...(serviceType === "automatic"
         ? { swaggerUrl: formData.swaggerUrl }
         : { fields: formData.fields }),
@@ -336,6 +591,12 @@ export default function AdminServicesPage() {
     (service) =>
       service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       service.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const filteredIcons = availableIcons.filter(
+    (icon) =>
+      icon.name.toLowerCase().includes(iconSearchTerm.toLowerCase()) ||
+      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase())
   );
 
   const getFieldIcon = (type: FormField["type"]) => {
@@ -356,7 +617,7 @@ export default function AdminServicesPage() {
   };
 
   return (
-    <Layout>
+    <FrontLayout>
       <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
         {/* Header */}
         <section className="container mx-auto px-4 py-8">
@@ -549,6 +810,137 @@ export default function AdminServicesPage() {
                         }))
                       }
                     />
+                  </div>
+
+                  {/* Sélection de l'icône */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Icône du service
+                    </label>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-12 h-12 rounded-lg bg-gradient-to-r ${formData.gradient} flex items-center justify-center text-white`}
+                        >
+                          {React.createElement(
+                            availableIcons.find(
+                              (icon) => icon.name === formData.iconName
+                            )?.icon || Settings,
+                            { className: "w-6 h-6" }
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Rechercher une icône..."
+                            value={iconSearchTerm}
+                            onChange={(e) => setIconSearchTerm(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto border border-border rounded-md p-3">
+                        {filteredIcons.map((iconData) => {
+                          const IconComponent = iconData.icon;
+                          return (
+                            <button
+                              key={iconData.name}
+                              type="button"
+                              className={`p-2 rounded-md border-2 transition-all hover:bg-accent ${
+                                formData.iconName === iconData.name
+                                  ? "border-purple-500 bg-accent"
+                                  : "border-transparent"
+                              }`}
+                              onClick={() =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  iconName: iconData.name,
+                                }))
+                              }
+                              title={iconData.label}
+                            >
+                              <IconComponent className="w-5 h-5" />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sélection du gradient */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Couleur du service
+                    </label>
+                    <div className="grid grid-cols-4 gap-3">
+                      {availableGradients.map((gradient) => (
+                        <button
+                          key={gradient.value}
+                          type="button"
+                          className={`p-3 rounded-lg border-2 transition-all ${
+                            formData.gradient === gradient.value
+                              ? "border-white ring-2 ring-purple-500"
+                              : "border-transparent"
+                          }`}
+                          onClick={() =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              gradient: gradient.value,
+                            }))
+                          }
+                          title={gradient.name}
+                        >
+                          <div
+                            className={`w-full h-8 rounded ${gradient.preview}`}
+                          ></div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Statut du service */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Statut du service
+                    </label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="status"
+                          value="active"
+                          checked={formData.status === "active"}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              status: e.target.value as "active" | "inactive",
+                            }))
+                          }
+                          className="text-green-500"
+                        />
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                          Actif
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="radio"
+                          name="status"
+                          value="inactive"
+                          checked={formData.status === "inactive"}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              status: e.target.value as "active" | "inactive",
+                            }))
+                          }
+                          className="text-red-500"
+                        />
+                        <span className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                          Inactif
+                        </span>
+                      </label>
+                    </div>
                   </div>
                 </div>
 
@@ -756,6 +1148,6 @@ export default function AdminServicesPage() {
           </div>
         </Modal>
       </div>
-    </Layout>
+    </FrontLayout>
   );
 }
