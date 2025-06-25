@@ -29,10 +29,10 @@ export async function handleRegister({
 
   const id = randomUUID();
 
-  const result = await createUser({ 
-    id, 
-    email, 
-    password_hash, 
+  const result = await createUser({
+    id,
+    email,
+    password_hash,
     full_name: full_name || null,
     job_title: job_title || null,
   });
@@ -48,7 +48,7 @@ export async function handleRegister({
 
 export async function handleLogin(
   email: string,
-  password: string
+  password: string,
 ): Promise<string> {
   const user = await findUserByEmail(email);
 
