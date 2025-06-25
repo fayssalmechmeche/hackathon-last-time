@@ -3,6 +3,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
+import DisplayServices from "./pages/DisplayServices";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
   {
     path: "/register/profile",
     element: <RegisterProfilePage />,
+  },
+  {
+    path: "/services",
+    element: <DisplayServices />, // Assuming DisplayServices is the main service page
   },
 ]);
 
