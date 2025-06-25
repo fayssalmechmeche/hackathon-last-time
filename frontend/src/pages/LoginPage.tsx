@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
+import Layout from "../components/Layout";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -10,16 +13,30 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import Layout from "../components/Layout";
+import { authApi } from "../lib/auth";
+import { loginSchema, type LoginFormData } from "../lib/validations";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // API call will be implemented here
-    console.log("Login attempt:", { email, password });
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      const { token } = await authApi.login({
+        email: data.email,
+        password: data.password,
+      });
+      localStorage.setItem("authToken", token);
+      navigate("/");
+    } catch {
+      toast.error("Identifiants incorrects. Veuillez réessayer.");
+    }
   };
 
   return (
@@ -31,33 +48,35 @@ export default function LoginPage() {
             <CardDescription>Connectez-vous à votre compte</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Adresse e-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setEmail(e.target.value)
-                  }
-                  required
-                />
+                <Input id="email" type="email" {...register("email")} />
+                {errors.email && (
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
                 <Input
                   id="password"
                   type="password"
-                  value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setPassword(e.target.value)
-                  }
-                  required
+                  {...register("password")}
                 />
+                {errors.password && (
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
-              <Button type="submit" className="w-full">
-                Se connecter
+              <Button
+                type="submit"
+                className="w-full rounded-xl"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Connexion..." : "Se connecter"}
               </Button>
             </form>
             <div className="mt-4 text-center text-sm">

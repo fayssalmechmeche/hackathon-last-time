@@ -37,8 +37,8 @@ authRouter.post("/register", async (c) => {
   const schema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
-    full_name: z.string().optional(),
-    job_title: z.string().optional(),
+    full_name: z.string().min(1, "Full name is required"),
+    job_title: z.string().min(1, "Job title is required"),
   });
 
   const parseResult = schema.safeParse(body);
@@ -92,13 +92,13 @@ authRouter.post("/login", async (c) => {
 
 authRouter.get("/profile", jwtAuth, async (c) => {
   const userId = c.get("userId");
-  
+
   try {
     const user = await findUserById(userId);
     if (!user) {
       throw new HTTPException(status.NOT_FOUND);
     }
-    
+
     const { password_hash, ...profile } = user;
     return c.json(profile);
   } catch (error) {
@@ -108,7 +108,7 @@ authRouter.get("/profile", jwtAuth, async (c) => {
 
 authRouter.patch("/profile", jwtAuth, async (c) => {
   const userId = c.get("userId");
-  
+
   const body = await c.req.json();
   const schema = z.object({
     full_name: z.string().optional(),
@@ -122,7 +122,7 @@ authRouter.patch("/profile", jwtAuth, async (c) => {
 
   try {
     await updateUser(userId, parseResult.data);
-    
+
     const updatedUser = await findUserById(userId);
     if (!updatedUser) {
       throw new HTTPException(status.NOT_FOUND);

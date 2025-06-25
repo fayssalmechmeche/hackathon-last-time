@@ -1,5 +1,9 @@
-import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import Layout from "../components/Layout";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -10,12 +14,21 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import Layout from "../components/Layout";
+import { authApi } from "../lib/auth";
+import {
+  registerStep2Schema,
+  type RegisterStep2FormData,
+} from "../lib/validations";
 
 export default function RegisterProfilePage() {
-  const [fullName, setFullName] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
   const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterStep2FormData>({
+    resolver: zodResolver(registerStep2Schema),
+  });
 
   useEffect(() => {
     // Check for cached registration data from step 1
@@ -28,7 +41,7 @@ export default function RegisterProfilePage() {
 
     try {
       const { email, password } = JSON.parse(cachedData);
-      // Simple validation
+
       if (
         !email ||
         !email.includes("@") ||
@@ -46,9 +59,7 @@ export default function RegisterProfilePage() {
     }
   }, [navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async (data: RegisterStep2FormData) => {
     try {
       // Retrieve cached data from step 1
       const cachedData = sessionStorage.getItem("registrationData");
@@ -59,68 +70,67 @@ export default function RegisterProfilePage() {
 
       const { email, password } = JSON.parse(cachedData);
 
-      // Single API call with all registration data
-      console.log("Complete registration:", {
+      const response = await authApi.register({
         email,
         password,
-        fullName,
-        jobTitle,
+        full_name: data.fullName,
+        job_title: data.jobTitle,
       });
+
+      localStorage.setItem("authToken", response.token);
 
       // Clear cached data after successful registration
       sessionStorage.removeItem("registrationData");
 
-      // Future-proof redirect - easy to change later
-      const redirectPath = "/login";
-      navigate(redirectPath);
+      navigate("/");
     } catch (error) {
-      // TODO: Handle error
       console.error("Registration error:", error);
+      toast.error("Erreur lors de l'inscription. Veuillez réessayer.");
     }
   };
 
   return (
     <Layout>
-      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4">
+      <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 bg-background">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl">
-              Finaliser votre inscription
-            </CardTitle>
-            <CardDescription>Complétez votre profil</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Nom complet</Label>
-                <Input
-                  id="fullName"
-                  type="text"
-                  value={fullName}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setFullName(e.target.value)
-                  }
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="jobTitle">Titre du poste</Label>
-                <Input
-                  id="jobTitle"
-                  type="text"
-                  value={jobTitle}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setJobTitle(e.target.value)
-                  }
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Terminer l'inscription
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">
+            Finaliser votre inscription
+          </CardTitle>
+          <CardDescription>Complétez votre profil</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">Nom complet</Label>
+              <Input id="fullName" type="text" {...register("fullName")} />
+              {errors.fullName && (
+                <p className="text-sm text-destructive">
+                  {errors.fullName.message}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="jobTitle">Titre du poste</Label>
+              <Input id="jobTitle" type="text" {...register("jobTitle")} />
+              {errors.jobTitle && (
+                <p className="text-sm text-destructive">
+                  {errors.jobTitle.message}
+                </p>
+              )}
+            </div>
+            <Button
+              type="submit"
+              className="w-full rounded-xl"
+              disabled={isSubmitting}
+            >
+              {isSubmitting
+                ? "Inscription en cours..."
+                : "Terminer l'inscription"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
       </div>
     </Layout>
   );
