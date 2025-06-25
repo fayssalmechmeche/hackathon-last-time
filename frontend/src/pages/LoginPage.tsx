@@ -34,8 +34,8 @@ export default function LoginPage() {
       });
       localStorage.setItem("authToken", token);
       navigate("/");
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Login failed");
+    } catch {
+      toast.error("Identifiants incorrects. Veuillez réessayer.");
     }
   };
 
