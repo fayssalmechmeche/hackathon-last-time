@@ -53,7 +53,14 @@ export default function Navbar() {
 
   return (
     <nav className="h-16 bg-background px-8 flex items-center justify-between">
-      <div className="text-xl text-foreground">Nexolve</div>
+      <div className="flex items-center gap-3">
+        <img 
+          src="/assets/logo.png" 
+          alt="Nexolve Logo" 
+          className="h-8 w-8 object-contain"
+        />
+        <div className="text-xl text-foreground">Nexolve</div>
+      </div>
 
       {/* Desktop menu */}
       <div className="hidden sm:flex gap-4 items-center">
