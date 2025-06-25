@@ -90,8 +90,10 @@ export default function ServicesPage() {
             Nos services
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-2xl mx-auto mb-8">
-            Notre IA intelligente comprend vos besoins, identifie les meilleurs
-            outils et vous propose une feuille de route personnalisée.
+            Explorez notre écosystème complet d'outils numériques. Que vous ayez besoin de convertir, compresser, éditer ou créer, trouvez la solution parfaite sur Nexolve.
+          </p>
+          <p className="text-muted-foreground text-base max-w-lg mx-auto mb-6">
+            Vous souhaitez intégrer votre propre service à Nexolve ?
           </p>
           <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-full text-lg">
             Déposer mon service
