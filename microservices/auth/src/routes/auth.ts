@@ -37,8 +37,8 @@ authRouter.post("/register", async (c) => {
   const schema = z.object({
     email: z.string().email(),
     password: z.string().min(6),
-    full_name: z.string().optional(),
-    job_title: z.string().optional(),
+    full_name: z.string().min(1, "Full name is required"),
+    job_title: z.string().min(1, "Job title is required"),
   });
 
   const parseResult = schema.safeParse(body);

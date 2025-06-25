@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
+import Layout from "../components/Layout";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -10,29 +12,27 @@ import {
 } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import Layout from "../components/Layout";
+import {
+  registerStep1Schema,
+  type RegisterStep1FormData,
+} from "../lib/validations";
 
 export default function RegisterPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const navigate = useNavigate();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<RegisterStep1FormData>({
+    resolver: zodResolver(registerStep1Schema),
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (password !== confirmPassword) {
-      // TODO: Show error message
-      return;
-    }
-
-    // Store registration data in sessionStorage for step 2
+  const onSubmit = async (data: RegisterStep1FormData) => {
+    // Store data for step 2
     sessionStorage.setItem(
       "registrationData",
-      JSON.stringify({ email, password })
+      JSON.stringify({ email: data.email, password: data.password })
     );
-
-    // Navigate to profile step
     navigate("/register/profile");
   };
 
@@ -45,45 +45,50 @@ export default function RegisterPage() {
             <CardDescription>Créez votre compte</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Adresse e-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setEmail(e.target.value)
-                  }
-                  required
-                />
+                <Input id="email" type="email" {...register("email")} />
+                {errors.email && (
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Mot de passe</Label>
                 <Input
                   id="password"
                   type="password"
-                  value={password}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setPassword(e.target.value)
-                  }
-                  required
+                  {...register("password")}
                 />
+                {errors.password && (
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+                <Label htmlFor="confirmPassword">
+                  Confirmer le mot de passe
+                </Label>
                 <Input
                   id="confirmPassword"
                   type="password"
-                  value={confirmPassword}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setConfirmPassword(e.target.value)
-                  }
-                  required
+                  {...register("confirmPassword")}
                 />
+                {errors.confirmPassword && (
+                  <p className="text-sm text-destructive">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
               </div>
-              <Button type="submit" className="w-full">
-                Continuer
+              <Button
+                type="submit"
+                className="w-full rounded-xl"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Traitement..." : "Continuer"}
               </Button>
             </form>
             <div className="mt-4 text-center text-sm">
