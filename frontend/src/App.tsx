@@ -6,6 +6,7 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
+import ListServices from "./pages/ListServices";
 
 const router = createBrowserRouter([
   {
@@ -37,6 +38,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <ServicesPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/services/list",
+    element: (
+      <ProtectedRoute>
+        <ListServices />
       </ProtectedRoute>
     ),
   },

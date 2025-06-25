@@ -1,0 +1,761 @@
+import React, { useState } from "react";
+import {
+  FileText,
+  Image,
+  Search,
+  Video,
+  Plus,
+  Edit,
+  Trash2,
+  ExternalLink,
+  Save,
+  X,
+  Upload,
+  Hash,
+  Type,
+  Calendar,
+  ToggleLeft,
+  Settings,
+  Link,
+  Bot,
+} from "lucide-react";
+
+interface Service {
+  id: number;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  gradient: string;
+  status: "active" | "inactive";
+  type: "automatic" | "manual";
+  swaggerUrl?: string;
+  fields?: FormField[];
+}
+
+interface FormField {
+  id: number;
+  type: "file" | "text" | "number" | "date" | "select";
+  label: string;
+  placeholder: string;
+  required: boolean;
+  options?: string[];
+}
+
+interface FormData {
+  title: string;
+  description: string;
+  swaggerUrl: string;
+  fields: FormField[];
+}
+
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: "default" | "secondary" | "outline" | "ghost" | "destructive";
+  size?: "default" | "sm" | "lg";
+  children: React.ReactNode;
+}
+
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
+
+type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
+
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+  title: string;
+}
+
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => (
+  <div className="min-h-screen bg-background">
+    <nav className="border-b border-border bg-card">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-foreground">
+            Admin - Nexolve
+          </h1>
+          <div className="text-sm text-muted-foreground">
+            Gestion des services
+          </div>
+        </div>
+      </div>
+    </nav>
+    {children}
+  </div>
+);
+
+const Button: React.FC<ButtonProps> = ({
+  children,
+  variant = "default",
+  size = "default",
+  className = "",
+  ...props
+}) => {
+  const baseClasses =
+    "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50";
+  const variants = {
+    default: "bg-primary text-primary-foreground hover:bg-primary/90",
+    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+    outline:
+      "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+    ghost: "hover:bg-accent hover:text-accent-foreground",
+    destructive:
+      "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+  };
+  const sizes = {
+    default: "h-10 px-4 py-2",
+    sm: "h-9 rounded-md px-3",
+    lg: "h-11 rounded-md px-8",
+  };
+
+  return (
+    <button
+      className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+const Card: React.FC<CardProps> = ({ className = "", children, ...props }) => (
+  <div
+    className={`rounded-lg border border-border bg-card text-card-foreground shadow-sm ${className}`}
+    {...props}
+  >
+    {children}
+  </div>
+);
+
+const CardContent: React.FC<CardProps> = ({
+  className = "",
+  children,
+  ...props
+}) => (
+  <div className={`p-6 ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const Input: React.FC<InputProps> = ({ className = "", ...props }) => (
+  <input
+    className={`flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+    {...props}
+  />
+);
+
+const Textarea: React.FC<TextareaProps> = ({ className = "", ...props }) => (
+  <textarea
+    className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
+    {...props}
+  />
+);
+
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+      <div className="bg-card rounded-lg shadow-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-border">
+          <h2 className="text-xl font-semibold text-card-foreground">
+            {title}
+          </h2>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+        <div className="overflow-y-auto max-h-[calc(90vh-80px)]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function AdminServicesPage() {
+  const [services, setServices] = useState<Service[]>([
+    {
+      id: 1,
+      icon: <FileText className="w-8 h-8" />,
+      title: "PDF Tools",
+      description:
+        "Convertir PDF en PNG, JPG, Word ou compresser vos fichiers PDF",
+      gradient: "from-pink-500 to-rose-500",
+      status: "active",
+      type: "automatic",
+    },
+    {
+      id: 2,
+      icon: <Image className="w-8 h-8" />,
+      title: "Image Tools",
+      description:
+        "Compresser, redimensionner, convertir vos images en différents formats",
+      gradient: "from-purple-500 to-indigo-500",
+      status: "active",
+      type: "manual",
+    },
+    {
+      id: 3,
+      icon: <Video className="w-8 h-8" />,
+      title: "Video Tools",
+      description: "Compresser vidéos, extraire audio, convertir formats vidéo",
+      gradient: "from-blue-500 to-cyan-500",
+      status: "inactive",
+      type: "automatic",
+    },
+  ]);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalStep, setModalStep] = useState(1);
+  const [serviceType, setServiceType] = useState<"automatic" | "manual" | "">(
+    ""
+  );
+  const [formData, setFormData] = useState<FormData>({
+    title: "",
+    description: "",
+    swaggerUrl: "",
+    fields: [],
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleAddService = () => {
+    setIsModalOpen(true);
+    setModalStep(1);
+    setServiceType("");
+    setFormData({ title: "", description: "", swaggerUrl: "", fields: [] });
+  };
+
+  const handleServiceTypeSelect = (type: "automatic" | "manual") => {
+    setServiceType(type);
+    setModalStep(2);
+  };
+
+  const addField = (type: FormField["type"]) => {
+    const newField: FormField = {
+      id: Date.now(),
+      type,
+      label: "",
+      placeholder: "",
+      required: false,
+      options: type === "select" ? [""] : undefined,
+    };
+    setFormData((prev) => ({
+      ...prev,
+      fields: [...prev.fields, newField],
+    }));
+  };
+
+  const updateField = (fieldId: number, updates: Partial<FormField>) => {
+    setFormData((prev) => ({
+      ...prev,
+      fields: prev.fields.map((field) =>
+        field.id === fieldId ? { ...field, ...updates } : field
+      ),
+    }));
+  };
+
+  const removeField = (fieldId: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      fields: prev.fields.filter((field) => field.id !== fieldId),
+    }));
+  };
+
+  const addSelectOption = (fieldId: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      fields: prev.fields.map((field) =>
+        field.id === fieldId
+          ? { ...field, options: [...(field.options || []), ""] }
+          : field
+      ),
+    }));
+  };
+
+  const updateSelectOption = (
+    fieldId: number,
+    optionIndex: number,
+    value: string
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      fields: prev.fields.map((field) =>
+        field.id === fieldId
+          ? {
+              ...field,
+              options: field.options?.map((opt, idx) =>
+                idx === optionIndex ? value : opt
+              ),
+            }
+          : field
+      ),
+    }));
+  };
+
+  const removeSelectOption = (fieldId: number, optionIndex: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      fields: prev.fields.map((field) =>
+        field.id === fieldId
+          ? {
+              ...field,
+              options: field.options?.filter((_, idx) => idx !== optionIndex),
+            }
+          : field
+      ),
+    }));
+  };
+
+  const handleSaveService = () => {
+    const newService: Service = {
+      id: Date.now(),
+      title: formData.title,
+      description: formData.description,
+      type: serviceType as "automatic" | "manual",
+      status: "active",
+      gradient: "from-indigo-500 to-purple-500",
+      icon: <Settings className="w-8 h-8" />,
+      ...(serviceType === "automatic"
+        ? { swaggerUrl: formData.swaggerUrl }
+        : { fields: formData.fields }),
+    };
+
+    setServices((prev) => [...prev, newService]);
+    setIsModalOpen(false);
+  };
+
+  const filteredServices = services.filter(
+    (service) =>
+      service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      service.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getFieldIcon = (type: FormField["type"]) => {
+    switch (type) {
+      case "file":
+        return <Upload className="w-4 h-4" />;
+      case "text":
+        return <Type className="w-4 h-4" />;
+      case "number":
+        return <Hash className="w-4 h-4" />;
+      case "date":
+        return <Calendar className="w-4 h-4" />;
+      case "select":
+        return <ToggleLeft className="w-4 h-4" />;
+      default:
+        return <Type className="w-4 h-4" />;
+    }
+  };
+
+  return (
+    <Layout>
+      <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
+        {/* Header */}
+        <section className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">Gestion des Services</h1>
+              <p className="text-muted-foreground">
+                Administrez vos services Nexolve - Ajoutez, modifiez ou
+                supprimez des services
+              </p>
+            </div>
+            <Button
+              onClick={handleAddService}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un service
+            </Button>
+          </div>
+
+          {/* Search */}
+          <div className="max-w-md mb-8">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <Input
+                placeholder="Rechercher un service..."
+                className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Services List */}
+        <section className="container mx-auto px-4 pb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredServices.map((service) => (
+              <Card
+                key={service.id}
+                className="bg-card border-border hover:bg-accent/50 transition-all duration-300 group"
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className={`w-12 h-12 rounded-lg bg-gradient-to-r ${service.gradient} flex items-center justify-center text-white`}
+                    >
+                      {service.icon}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <h3 className="font-semibold text-lg mb-2 text-card-foreground">
+                    {service.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                    {service.description}
+                  </p>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-2 h-2 rounded-full ${
+                          service.status === "active"
+                            ? "bg-green-500"
+                            : "bg-red-500"
+                        }`}
+                      ></span>
+                      <span className="text-xs text-muted-foreground capitalize">
+                        {service.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      {service.type === "automatic" ? (
+                        <Bot className="w-3 h-3" />
+                      ) : (
+                        <Settings className="w-3 h-3" />
+                      )}
+                      {service.type}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={
+            modalStep === 1
+              ? "Ajouter un service"
+              : `Configurer le service (${serviceType})`
+          }
+        >
+          <div className="p-6">
+            {modalStep === 1 && (
+              <div className="space-y-6">
+                <p className="text-muted-foreground mb-6">
+                  Choisissez le type de service que vous souhaitez ajouter :
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Card
+                    className="cursor-pointer hover:bg-accent/50 transition-all border-2 hover:border-purple-500"
+                    onClick={() => handleServiceTypeSelect("automatic")}
+                  >
+                    <CardContent className="p-6 text-center">
+                      <div className="w-16 h-16 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center mb-4 text-white mx-auto">
+                        <Bot className="w-8 h-8" />
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">
+                        Configuration Automatique
+                      </h3>
+                      <p className="text-muted-foreground text-sm mb-4">
+                        Importez un swagger d'API IA pour générer
+                        automatiquement le formulaire
+                      </p>
+                      <div className="flex items-center justify-center text-xs text-muted-foreground">
+                        <Link className="w-3 h-3 mr-1" />
+                        Via Swagger/OpenAPI
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card
+                    className="cursor-pointer hover:bg-accent/50 transition-all border-2 hover:border-green-500"
+                    onClick={() => handleServiceTypeSelect("manual")}
+                  >
+                    <CardContent className="p-6 text-center">
+                      <div className="w-16 h-16 rounded-xl bg-gradient-to-r from-green-500 to-emerald-500 flex items-center justify-center mb-4 text-white mx-auto">
+                        <Settings className="w-8 h-8" />
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">
+                        Configuration Manuelle
+                      </h3>
+                      <p className="text-muted-foreground text-sm mb-4">
+                        Créez manuellement les champs du formulaire selon vos
+                        besoins
+                      </p>
+                      <div className="flex items-center justify-center text-xs text-muted-foreground">
+                        <Edit className="w-3 h-3 mr-1" />
+                        Personnalisé
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            )}
+
+            {modalStep === 2 && (
+              <div className="space-y-6">
+                {/* Informations de base */}
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Nom du service
+                    </label>
+                    <Input
+                      placeholder="Ex: Convertisseur PDF"
+                      value={formData.title}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          title: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Description
+                    </label>
+                    <Textarea
+                      placeholder="Décrivez brièvement ce que fait votre service..."
+                      value={formData.description}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          description: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+
+                {serviceType === "automatic" && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        URL du Swagger
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="https://api.example.com/swagger.json"
+                          value={formData.swaggerUrl}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              swaggerUrl: e.target.value,
+                            }))
+                          }
+                        />
+                        <Button variant="outline">
+                          <ExternalLink className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        L'IA analysera automatiquement le swagger pour générer
+                        le formulaire
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {serviceType === "manual" && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">
+                        Champs du formulaire
+                      </h3>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addField("file")}
+                        >
+                          <Upload className="w-4 h-4 mr-1" />
+                          Fichier
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addField("text")}
+                        >
+                          <Type className="w-4 h-4 mr-1" />
+                          Texte
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addField("number")}
+                        >
+                          <Hash className="w-4 h-4 mr-1" />
+                          Nombre
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => addField("select")}
+                        >
+                          <ToggleLeft className="w-4 h-4 mr-1" />
+                          Liste
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4 max-h-60 overflow-y-auto">
+                      {formData.fields.map((field) => (
+                        <Card key={field.id} className="p-4">
+                          <div className="flex items-start gap-4">
+                            <div className="flex items-center justify-center w-8 h-8 rounded bg-muted">
+                              {getFieldIcon(field.type)}
+                            </div>
+                            <div className="flex-1 space-y-3">
+                              <div className="grid grid-cols-2 gap-2">
+                                <Input
+                                  placeholder="Label du champ"
+                                  value={field.label}
+                                  onChange={(e) =>
+                                    updateField(field.id, {
+                                      label: e.target.value,
+                                    })
+                                  }
+                                />
+                                <Input
+                                  placeholder="Placeholder"
+                                  value={field.placeholder}
+                                  onChange={(e) =>
+                                    updateField(field.id, {
+                                      placeholder: e.target.value,
+                                    })
+                                  }
+                                />
+                              </div>
+
+                              {field.type === "select" && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium">
+                                      Options
+                                    </label>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => addSelectOption(field.id)}
+                                    >
+                                      <Plus className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                  {field.options?.map((option, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                      <Input
+                                        placeholder={`Option ${idx + 1}`}
+                                        value={option}
+                                        onChange={(e) =>
+                                          updateSelectOption(
+                                            field.id,
+                                            idx,
+                                            e.target.value
+                                          )
+                                        }
+                                      />
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() =>
+                                          removeSelectOption(field.id, idx)
+                                        }
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  id={`required-${field.id}`}
+                                  checked={field.required}
+                                  onChange={(e) =>
+                                    updateField(field.id, {
+                                      required: e.target.checked,
+                                    })
+                                  }
+                                  className="rounded"
+                                />
+                                <label
+                                  htmlFor={`required-${field.id}`}
+                                  className="text-sm"
+                                >
+                                  Champ obligatoire
+                                </label>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeField(field.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </Card>
+                      ))}
+
+                      {formData.fields.length === 0 && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          Aucun champ ajouté. Utilisez les boutons ci-dessus
+                          pour ajouter des champs.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex justify-end gap-3 pt-6 border-t border-border">
+                  <Button variant="outline" onClick={() => setModalStep(1)}>
+                    Retour
+                  </Button>
+                  <Button
+                    onClick={handleSaveService}
+                    disabled={
+                      !formData.title ||
+                      !formData.description ||
+                      (serviceType === "automatic" && !formData.swaggerUrl)
+                    }
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Enregistrer le service
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
+      </div>
+    </Layout>
+  );
+}
