@@ -60,7 +60,7 @@ export default function Navbar() {
         {isAuthenticated && user ? (
           <>
             <Button variant="ghost" asChild>
-              <Link to="/">Services</Link>
+              <Link to="/services">Services</Link>
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -134,7 +134,7 @@ export default function Navbar() {
                   variant="ghost"
                   className="justify-start"
                   onClick={() => {
-                    navigate("/");
+                    navigate("/services");
                     setIsMenuOpen(false);
                   }}
                 >
