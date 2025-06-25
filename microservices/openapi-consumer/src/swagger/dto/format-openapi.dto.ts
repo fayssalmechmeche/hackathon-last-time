@@ -1,11 +1,11 @@
+import { Type } from 'class-transformer';
 import {
   IsString,
-  IsObject,
-  ValidateNested,
-  IsOptional,
   IsNotEmpty,
+  ValidateNested,
+  IsObject,
+  IsBoolean,
 } from 'class-validator';
-import { Type } from 'class-transformer';
 
 export class SwaggerInfoDto {
   @IsString()
@@ -14,56 +14,78 @@ export class SwaggerInfoDto {
 
   @IsString()
   @IsNotEmpty()
-  version: string;
+  description: string;
 
-  @IsString()
-  @IsOptional()
-  description?: string;
-}
-
-export class SwaggerDto {
   @IsString()
   @IsNotEmpty()
-  swagger: string;
+  host: string;
+
+  @IsString()
+  @IsNotEmpty()
+  basePath: string;
 
   @IsObject()
   @ValidateNested()
-  @Type(() => SwaggerInfoDto)
-  info: SwaggerInfoDto;
+  @Type(() => SwaggerPathDto)
+  paths: SwaggerPathDto[];
+}
+
+export class SwaggerPathDto {
+  @IsString()
+  @IsNotEmpty()
+  path: string;
 
   @IsObject()
-  paths: Record<string, any>;
+  @ValidateNested()
+  @Type(() => SwaggerRouteDto)
+  routes: SwaggerRouteDto[];
+}
+
+export class SwaggerRouteDto {
+  @IsString()
+  @IsNotEmpty()
+  method: string;
 
   @IsString()
-  @IsOptional()
-  host?: string;
+  @IsNotEmpty()
+  summary: string;
 
   @IsString()
-  @IsOptional()
-  basePath?: string;
+  @IsNotEmpty()
+  description: string;
 
-  @IsOptional()
-  schemes?: string[];
-
-  @IsOptional()
-  consumes?: string[];
-
-  @IsOptional()
-  produces?: string[];
+  @IsString()
+  @IsNotEmpty()
+  operationId: string;
 
   @IsObject()
-  @IsOptional()
-  definitions?: Record<string, any>;
+  @ValidateNested()
+  @Type(() => SwaggerParameterDto)
+  parameters: SwaggerParameterDto[];
+}
 
-  @IsOptional()
-  @IsOptional()
-  tags?: any[];
+export class SwaggerParameterDto {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 
-  @IsObject()
-  @IsOptional()
-  securityDefinitions?: Record<string, any>;
+  @IsString()
+  @IsNotEmpty()
+  in: string;
 
-  @IsObject()
-  @IsOptional()
-  externalDocs?: Record<string, any>;
+  @IsString()
+  @IsNotEmpty()
+  description: string;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  required: boolean;
+
+  @IsString()
+  @IsNotEmpty()
+  type: string;
+
+  @IsString()
+  @IsNotEmpty()
+  format: string;
 }
