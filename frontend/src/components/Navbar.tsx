@@ -1,15 +1,15 @@
-import { Menu, X, User } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Menu, User, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Button } from "./ui/button";
+import { authApi, type User as UserType } from "../lib/auth";
 import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { authApi, type User as UserType } from "../lib/auth";
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -60,7 +60,11 @@ export default function Navbar() {
         {isAuthenticated && user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative h-9 w-9 rounded-full">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-9 w-9 rounded-full"
+              >
                 <Avatar className="h-9 w-9">
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {getAvatarFallback(user.full_name)}
@@ -72,7 +76,7 @@ export default function Navbar() {
               <DropdownMenuItem onClick={() => navigate("/")}>
                 Gérer mes services
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/")}>
+              <DropdownMenuItem onClick={() => navigate("/profile/edit")}>
                 Modifier mon profil
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleLogout}>
@@ -117,7 +121,9 @@ export default function Navbar() {
                       {getAvatarFallback(user.full_name)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-sm font-medium">{user.full_name || user.email}</span>
+                  <span className="text-sm font-medium">
+                    {user.full_name || user.email}
+                  </span>
                 </div>
                 <Button
                   variant="ghost"

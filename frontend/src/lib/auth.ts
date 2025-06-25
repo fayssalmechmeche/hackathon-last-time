@@ -12,6 +12,11 @@ export interface RegisterData {
   job_title: string;
 }
 
+export interface UpdateProfileData {
+  full_name: string;
+  job_title: string;
+}
+
 export interface AuthResponse {
   token: string;
 }
@@ -38,6 +43,11 @@ export const authApi = {
 
   getProfile: async (): Promise<User> => {
     const response = await api.get("/auth/profile");
+    return response.data;
+  },
+
+  updateProfile: async (data: UpdateProfileData): Promise<User> => {
+    const response = await api.patch("/auth/profile", data);
     return response.data;
   },
 };
