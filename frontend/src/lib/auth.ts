@@ -12,8 +12,22 @@ export interface RegisterData {
   job_title: string;
 }
 
+export interface UpdateProfileData {
+  full_name: string;
+  job_title: string;
+}
+
 export interface AuthResponse {
   token: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  full_name: string | null;
+  job_title: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export const authApi = {
@@ -24,6 +38,16 @@ export const authApi = {
 
   register: async (data: RegisterData): Promise<AuthResponse> => {
     const response = await api.post("/auth/register", data);
+    return response.data;
+  },
+
+  getProfile: async (): Promise<User> => {
+    const response = await api.get("/auth/profile");
+    return response.data;
+  },
+
+  updateProfile: async (data: UpdateProfileData): Promise<User> => {
+    const response = await api.patch("/auth/profile", data);
     return response.data;
   },
 };

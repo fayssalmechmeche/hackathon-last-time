@@ -21,6 +21,12 @@ export const registerStep2Schema = z.object({
   jobTitle: z.string().min(1, "Job title is required"),
 });
 
+export const editProfileSchema = z.object({
+  fullName: z.string().min(1, "Le nom complet est requis"),
+  jobTitle: z.string().min(1, "Le titre du poste est requis"),
+});
+
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterStep1FormData = z.infer<typeof registerStep1Schema>;
 export type RegisterStep2FormData = z.infer<typeof registerStep2Schema>;
+export type EditProfileFormData = z.infer<typeof editProfileSchema>;

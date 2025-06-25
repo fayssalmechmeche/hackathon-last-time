@@ -1,9 +1,11 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
+import ProtectedRoute from "./components/ProtectedRoute";
+import ServicesPage from "./pages/DisplayServices";
+import EditProfilePage from "./pages/EditProfilePage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
-import DisplayServices from "./pages/DisplayServices";
 
 const router = createBrowserRouter([
   {
@@ -23,8 +25,20 @@ const router = createBrowserRouter([
     element: <RegisterProfilePage />,
   },
   {
+    path: "/profile/edit",
+    element: (
+      <ProtectedRoute>
+        <EditProfilePage />
+      </ProtectedRoute>
+    ),
+  },
+  {
     path: "/services",
-    element: <DisplayServices />, // Assuming DisplayServices is the main service page
+    element: (
+      <ProtectedRoute>
+        <ServicesPage />
+      </ProtectedRoute>
+    ),
   },
 ]);
 
