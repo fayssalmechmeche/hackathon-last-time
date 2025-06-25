@@ -1,10 +1,10 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
+import DisplayServices from "./pages/DisplayServices";
 import EditProfilePage from "./pages/EditProfilePage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
-import DisplayServices from "./pages/DisplayServices";
 
 const router = createBrowserRouter([
   {
@@ -24,13 +24,12 @@ const router = createBrowserRouter([
     element: <RegisterProfilePage />,
   },
   {
-<<<<<<< HEAD
     path: "/profile/edit",
     element: <EditProfilePage />,
-=======
+  },
+  {
     path: "/services",
     element: <DisplayServices />, // Assuming DisplayServices is the main service page
->>>>>>> 92603ad (Add page to display services)
   },
 ]);
 
