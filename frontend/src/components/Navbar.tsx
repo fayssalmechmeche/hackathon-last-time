@@ -58,32 +58,37 @@ export default function Navbar() {
       {/* Desktop menu */}
       <div className="hidden sm:flex gap-4 items-center">
         {isAuthenticated && user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative h-9 w-9 rounded-full"
-              >
-                <Avatar className="h-9 w-9">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {getAvatarFallback(user.full_name)}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end">
-              <DropdownMenuItem onClick={() => navigate("/")}>
-                Gérer mes services
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/profile/edit")}>
-                Modifier mon profil
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
-                Déconnexion
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <>
+            <Button variant="ghost" asChild>
+              <Link to="/">Services</Link>
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative h-9 w-9 rounded-full"
+                >
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {getAvatarFallback(user.full_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuItem onClick={() => navigate("/")}>
+                  Gérer mes services
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/profile/edit")}>
+                  Modifier mon profil
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  Déconnexion
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         ) : (
           <>
             <Button variant="ghost" asChild>
@@ -125,6 +130,16 @@ export default function Navbar() {
                     {user.full_name || user.email}
                   </span>
                 </div>
+                <Button
+                  variant="ghost"
+                  className="justify-start"
+                  onClick={() => {
+                    navigate("/");
+                    setIsMenuOpen(false);
+                  }}
+                >
+                  Services
+                </Button>
                 <Button
                   variant="ghost"
                   className="justify-start"

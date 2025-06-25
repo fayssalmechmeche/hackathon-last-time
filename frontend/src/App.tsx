@@ -1,9 +1,9 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
+import EditProfilePage from "./pages/EditProfilePage";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
-import EditProfilePage from "./pages/EditProfilePage";
 
 const router = createBrowserRouter([
   {
