@@ -95,6 +95,7 @@ import {
   XCircle,
   Zap,
   ArrowRight,
+  Loader2,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -419,10 +420,10 @@ export default function AdminServicesPage() {
 
   // Fonction pour convertir ServiceResponse en Service avec icône
   const convertServiceResponseToService = (
-    serviceResponse: ServiceResponse,
+    serviceResponse: ServiceResponse
   ): Service => {
     const selectedIcon = availableIcons.find(
-      (icon) => icon.name === serviceResponse.iconName,
+      (icon) => icon.name === serviceResponse.iconName
     );
     const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
 
@@ -439,7 +440,7 @@ export default function AdminServicesPage() {
         setLoading(true);
         const response = await servicesApiMethods.getActiveServices();
         const servicesWithIcons = response.data.map(
-          convertServiceResponseToService,
+          convertServiceResponseToService
         );
         setServices(servicesWithIcons);
       } catch (error) {
@@ -456,7 +457,7 @@ export default function AdminServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
   const [serviceType, setServiceType] = useState<"automatic" | "manual" | "">(
-    "",
+    ""
   );
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -472,7 +473,11 @@ export default function AdminServicesPage() {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [iconSearchTerm, setIconSearchTerm] = useState("");
-
+  const [numberOfRoutes, setNumberOfRoutes] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSwaggerGood, setIsSwaggerGood] = useState(false);
+  const [routes, setRoutes] = useState<string[]>([]);
+  const [selectedRoute, setSelectedRoute] = useState("");
   const handleAddService = () => {
     setIsModalOpen(true);
     setModalStep(1);
@@ -514,7 +519,7 @@ export default function AdminServicesPage() {
     setFormData((prev) => ({
       ...prev,
       fields: prev.fields.map((field) =>
-        field.id === fieldId ? { ...field, ...updates } : field,
+        field.id === fieldId ? { ...field, ...updates } : field
       ),
     }));
   };
@@ -532,7 +537,7 @@ export default function AdminServicesPage() {
       fields: prev.fields.map((field) =>
         field.id === fieldId
           ? { ...field, options: [...(field.options || []), ""] }
-          : field,
+          : field
       ),
     }));
   };
@@ -540,7 +545,7 @@ export default function AdminServicesPage() {
   const updateSelectOption = (
     fieldId: number,
     optionIndex: number,
-    value: string,
+    value: string
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -549,10 +554,10 @@ export default function AdminServicesPage() {
           ? {
               ...field,
               options: field.options?.map((opt, idx) =>
-                idx === optionIndex ? value : opt,
+                idx === optionIndex ? value : opt
               ),
             }
-          : field,
+          : field
       ),
     }));
   };
@@ -566,7 +571,7 @@ export default function AdminServicesPage() {
               ...field,
               options: field.options?.filter((_, idx) => idx !== optionIndex),
             }
-          : field,
+          : field
       ),
     }));
   };
@@ -592,7 +597,7 @@ export default function AdminServicesPage() {
         // Recharger tous les services depuis l'API
         const response = await servicesApiMethods.getActiveServices();
         const servicesWithIcons = response.data.map(
-          convertServiceResponseToService,
+          convertServiceResponseToService
         );
         setServices(servicesWithIcons);
 
@@ -614,42 +619,48 @@ export default function AdminServicesPage() {
 
         // Show success message
         toast.success("Service créé avec succès");
-      } else {
-        // For automatic services
-        const newServiceData: CreateAutomatedServiceRequest = {
-          title: formData.title,
-          description: formData.description,
-          iconName: formData.iconName,
-          gradient: formData.gradient,
-          status: formData.status,
-          swaggerUrl: formData.swaggerUrl,
-        };
+      } else if (serviceType === "automatic") {
+        if (isSwaggerGood) {
+          // For automatic services
+          const newServiceData: CreateAutomatedServiceRequest = {
+            title: formData.title,
+            description: formData.description,
+            iconName: formData.iconName,
+            gradient: formData.gradient,
+            status: formData.status,
+            swaggerUrl: formData.swaggerUrl,
+          };
 
-        await servicesApiMethods.createAutomatedService(newServiceData);
+          await servicesApiMethods.createAutomatedService(newServiceData);
 
-        // Recharger tous les services depuis l'API
-        const response = await servicesApiMethods.getActiveServices();
-        const servicesWithIcons = response.data.map(
-          convertServiceResponseToService,
-        );
-        setServices(servicesWithIcons);
+          // Recharger tous les services depuis l'API
+          const response = await servicesApiMethods.getActiveServices();
+          const servicesWithIcons = response.data.map(
+            convertServiceResponseToService
+          );
+          setServices(servicesWithIcons);
 
-        setIsModalOpen(false);
-        toast.success("Service créé avec succès");
+          setIsModalOpen(false);
+          toast.success("Service créé avec succès");
 
-        // Reset form
-        setFormData({
-          title: "",
-          description: "",
-          swaggerUrl: "",
-          endpointUrl: "",
-          apiKey: "",
-          apiKeyHeader: "",
-          fields: [],
-          iconName: "Settings",
-          status: "active",
-          gradient: "from-purple-500 to-pink-500",
-        });
+          // Reset form
+          setFormData({
+            title: "",
+            description: "",
+            swaggerUrl: "",
+            endpointUrl: "",
+            apiKey: "",
+            apiKeyHeader: "",
+            fields: [],
+            iconName: "Settings",
+            status: "active",
+            gradient: "from-purple-500 to-pink-500",
+          });
+        } else {
+          toast.error(
+            "Veuillez vérifier l'URL du swagger avant de créer le service"
+          );
+        }
       }
     } catch (error) {
       console.error("Error creating service:", error);
@@ -657,16 +668,68 @@ export default function AdminServicesPage() {
     }
   };
 
+  const handleAnalyzeSwagger = async () => {
+    // call api to analyze swagger if service has endpoint in his swagger
+    if (formData.swaggerUrl && serviceType === "automatic") {
+      setIsLoading(true);
+      const response = await servicesApiMethods.analyzeSwagger(
+        formData.swaggerUrl
+      );
+      // check if the response has a routes property with a properties object
+      console.log(response.data.properties.routes.properties);
+      if (
+        response.status === 201 &&
+        response.data.properties.routes &&
+        Object.keys(response.data.properties.routes.properties).length == 0
+      ) {
+        setIsSwaggerGood(true);
+
+        setIsLoading(false);
+      } else if (
+        response.status === 201 &&
+        response.data.properties.routes &&
+        Object.keys(response.data.properties.routes.properties).length > 0
+      ) {
+        setIsSwaggerGood(false);
+        setNumberOfRoutes(
+          Object.keys(response.data.properties.routes.properties).length
+        );
+        setRoutes(
+          Object.keys(response.data.properties.routes.properties).map(
+            (route) => route as string
+          )
+        );
+        setIsLoading(false);
+        toast.error(
+          `Veuillez sélectionner un endpoint parmi les ${numberOfRoutes} disponibles`
+        );
+      } else {
+        setIsSwaggerGood(false);
+        setIsLoading(false);
+        toast.error("L'URL du swagger ne contient pas d'endpoint");
+      }
+    }
+  };
+
+  const handleRouteSelect = (selectedRoute: string) => {
+    setSelectedRoute(selectedRoute);
+    setFormData((prev) => ({
+      ...prev,
+      endpointUrl: selectedRoute,
+    }));
+    setIsSwaggerGood(true);
+  };
+
   const filteredServices = services.filter(
     (service) =>
       service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase()),
+      service.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredIcons = availableIcons.filter(
     (icon) =>
       icon.name.toLowerCase().includes(iconSearchTerm.toLowerCase()) ||
-      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase()),
+      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase())
   );
 
   const getFieldIcon = (type: FormField["type"]) => {
@@ -997,9 +1060,9 @@ export default function AdminServicesPage() {
                         >
                           {React.createElement(
                             availableIcons.find(
-                              (icon) => icon.name === formData.iconName,
+                              (icon) => icon.name === formData.iconName
                             )?.icon || Settings,
-                            { className: "w-6 h-6" },
+                            { className: "w-6 h-6" }
                           )}
                         </div>
                         <div className="flex-1">
@@ -1127,24 +1190,51 @@ export default function AdminServicesPage() {
                         <Input
                           placeholder="https://api.example.com/swagger.json"
                           value={formData.swaggerUrl}
-                          onChange={(e) =>
+                          onChange={(e) => {
                             setFormData((prev) => ({
                               ...prev,
                               swaggerUrl: e.target.value,
-                            }))
-                          }
+                            }));
+                            setIsSwaggerGood(false);
+                          }}
                         />
                         <Button
                           variant="outline"
+                          // mettre en rouge si le swagger n'est pas bon
+                          className={
+                            isSwaggerGood
+                              ? "border-green-600 bg-green-600 hover:bg-green-600"
+                              : "border-red-600 bg-red-600 hover:bg-red-600"
+                          }
                           onClick={() => {
                             if (formData.swaggerUrl) {
-                              window.open(formData.swaggerUrl, "_blank");
+                              handleAnalyzeSwagger();
                             }
                           }}
                         >
                           <ExternalLink className="w-4 h-4" />
                         </Button>
                       </div>
+                      {isSwaggerGood === false && numberOfRoutes > 0 && (
+                        <div className="mt-3 space-y-2">
+                          <p className="text-xs text-muted-foreground">
+                            Veuillez sélectionner un endpoint parmi les{" "}
+                            {numberOfRoutes} disponibles :
+                          </p>
+                          <select
+                            value={selectedRoute}
+                            onChange={(e) => handleRouteSelect(e.target.value)}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          >
+                            <option value="">Sélectionnez une route...</option>
+                            {routes.map((route, index) => (
+                              <option key={index} value={route}>
+                                {route}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
 
                       <p className="text-xs text-muted-foreground mt-1">
                         L'IA analysera automatiquement le swagger pour générer
@@ -1254,7 +1344,7 @@ export default function AdminServicesPage() {
                                             updateSelectOption(
                                               field.id,
                                               idx,
-                                              e.target.value,
+                                              e.target.value
                                             )
                                           }
                                           className="text-sm sm:text-base"
@@ -1332,11 +1422,19 @@ export default function AdminServicesPage() {
                     disabled={
                       !formData.title ||
                       !formData.description ||
-                      (serviceType === "automatic" && !formData.swaggerUrl)
+                      (serviceType === "automatic" &&
+                        (!formData.swaggerUrl ||
+                          (numberOfRoutes > 0 && !selectedRoute) ||
+                          (numberOfRoutes === 0 && !isSwaggerGood))) ||
+                      isLoading
                     }
                     className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
                   >
-                    <Save className="w-4 h-4 mr-2" />
+                    {isLoading ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Save className="w-4 h-4 mr-2" />
+                    )}
                     Enregistrer le service
                   </Button>
                 </div>

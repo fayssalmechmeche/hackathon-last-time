@@ -78,9 +78,17 @@ export interface ServiceResponse {
 
 // Services API endpoints
 const SERVICES_BASE_URL = "http://localhost:3002";
+const SWAGGER_BASE_URL = "http://localhost:3001";
 
 export const servicesApi = axios.create({
   baseURL: SERVICES_BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+export const swaggerApi = axios.create({
+  baseURL: SWAGGER_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -113,4 +121,10 @@ export const servicesApiMethods = {
     servicesApi.put(`/services/${id}`, updates),
 
   deleteService: (id: string) => servicesApi.delete(`/services/${id}`),
+
+  analyzeSwagger: (swaggerUrl: string) =>
+    swaggerApi.post("/swagger/import", { link: swaggerUrl }),
+
+  getSwaggerRoutes: (swaggerUrl: string) =>
+    swaggerApi.get(`/swagger/routes/${swaggerUrl}`),
 };
