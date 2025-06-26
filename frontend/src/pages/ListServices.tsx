@@ -130,6 +130,7 @@ interface FormData {
   title: string;
   description: string;
   swaggerUrl: string;
+  endpointUrl: string;
   fields: FormField[];
   iconName: string;
   status: "active" | "inactive";
@@ -464,6 +465,7 @@ export default function AdminServicesPage() {
     title: "",
     description: "",
     swaggerUrl: "",
+    endpointUrl: "",
     fields: [],
     iconName: "Settings",
     status: "active",
@@ -480,6 +482,7 @@ export default function AdminServicesPage() {
       title: "",
       description: "",
       swaggerUrl: "",
+      endpointUrl: "",
       fields: [],
       iconName: "Settings",
       status: "active",
@@ -578,6 +581,7 @@ export default function AdminServicesPage() {
           iconName: formData.iconName,
           gradient: formData.gradient,
           status: formData.status,
+          endpointUrl: formData.endpointUrl,
           fields: formData.fields,
         };
 
@@ -611,6 +615,7 @@ export default function AdminServicesPage() {
           title: "",
           description: "",
           swaggerUrl: "",
+          endpointUrl: "",
           fields: [],
           iconName: "Settings",
           status: "active",
@@ -885,6 +890,28 @@ export default function AdminServicesPage() {
                       }
                     />
                   </div>
+
+                  {/* Endpoint URL - only for manual services */}
+                  {serviceType === "manual" && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Endpoint URL
+                      </label>
+                      <Input
+                        placeholder="https://api.example.com/llm-endpoint"
+                        value={formData.endpointUrl}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            endpointUrl: e.target.value,
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        URL de l'API LLM où envoyer les données du formulaire
+                      </p>
+                    </div>
+                  )}
 
                   {/* Sélection de l'icône */}
                   <div>

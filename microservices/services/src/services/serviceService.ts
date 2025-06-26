@@ -31,6 +31,7 @@ export async function handleCreateManualService(
     gradient: serviceData.gradient,
     status: serviceData.status,
     type: "manual" as const,
+    endpointUrl: serviceData.endpointUrl,
     jsonSchema,
     createdBy: userId,
   };

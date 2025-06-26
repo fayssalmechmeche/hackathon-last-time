@@ -15,6 +15,7 @@ export const CreateManualServiceSchema = z.object({
   iconName: z.string().min(1, "Icon is required"),
   gradient: z.string().min(1, "Gradient is required"),
   status: z.enum(["active", "inactive"]),
+  endpointUrl: z.string().url("Invalid endpoint URL"),
   fields: z.array(FormFieldSchema).min(1, "At least one field is required"),
 });
 
@@ -24,6 +25,7 @@ export const UpdateServiceSchema = z.object({
   iconName: z.string().min(1).optional(),
   gradient: z.string().min(1).optional(),
   status: z.enum(["active", "inactive"]).optional(),
+  endpointUrl: z.string().url().optional(),
   jsonSchema: z.object({}).optional(),
 });
 

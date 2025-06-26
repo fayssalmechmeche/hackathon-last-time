@@ -7,6 +7,7 @@ export interface ServiceDocument {
   status: "active" | "inactive";
   type: "automatic" | "manual";
   swaggerUrl?: string; // For automatic services
+  endpointUrl?: string; // For manual services - the actual LLM API endpoint
   jsonSchema?: object; // Generated JSON Schema for dynamic forms
   createdAt: Date;
   updatedAt: Date;

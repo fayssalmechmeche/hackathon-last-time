@@ -25,6 +25,7 @@ export interface CreateManualServiceRequest {
   iconName: string;
   gradient: string;
   status: "active" | "inactive";
+  endpointUrl: string;
   fields: Array<{
     id: number;
     type: "file" | "text" | "number" | "date" | "select";
@@ -41,6 +42,7 @@ export interface UpdateServiceRequest {
   iconName?: string;
   gradient?: string;
   status?: "active" | "inactive";
+  endpointUrl?: string;
   jsonSchema?: object;
 }
 
