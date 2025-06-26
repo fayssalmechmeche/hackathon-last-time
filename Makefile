@@ -1,8 +1,8 @@
 dcu:
-	docker compose -f microservices/auth/compose.yaml up -d
+	docker compose up -d
 
 dcd:
-	docker compose -f microservices/auth/compose.yaml down
+	docker compose down
 
 dcdv:
-	docker compose -f microservices/auth/compose.yaml down -v
+	docker compose down -v
