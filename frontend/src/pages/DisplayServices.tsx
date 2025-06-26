@@ -22,10 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { useNavigate } from "react-router-dom";
 
-export default function ServicesPage() {
-  const services = [
+export default function DisplayServices() {
+  const navigate = useNavigate();
+
+  const mockServices = [
     {
+      id: "pdf-tools",
       icon: <FileText className="w-8 h-8" />,
       title: "PDF Tools",
       description:
@@ -33,6 +37,7 @@ export default function ServicesPage() {
       gradient: "from-pink-500 to-rose-500",
     },
     {
+      id: "image-tools",
       icon: <ImageIcon className="w-8 h-8" />,
       title: "Image Tools",
       description:
@@ -40,12 +45,14 @@ export default function ServicesPage() {
       gradient: "from-purple-500 to-indigo-500",
     },
     {
+      id: "video-tools",
       icon: <Video className="w-8 h-8" />,
       title: "Video Tools",
       description: "Compresser vidéos, extraire audio, convertir formats vidéo",
       gradient: "from-blue-500 to-cyan-500",
     },
     {
+      id: "audio-tools",
       icon: <Music className="w-8 h-8" />,
       title: "Audio Tools",
       description:
@@ -53,6 +60,7 @@ export default function ServicesPage() {
       gradient: "from-green-500 to-emerald-500",
     },
     {
+      id: "quick-convert",
       icon: <Zap className="w-8 h-8" />,
       title: "Quick Convert",
       description:
@@ -60,6 +68,7 @@ export default function ServicesPage() {
       gradient: "from-yellow-500 to-orange-500",
     },
     {
+      id: "design-tools",
       icon: <Palette className="w-8 h-8" />,
       title: "Design Tools",
       description:
@@ -67,6 +76,7 @@ export default function ServicesPage() {
       gradient: "from-red-500 to-pink-500",
     },
     {
+      id: "data-tools",
       icon: <Database className="w-8 h-8" />,
       title: "Data Tools",
       description:
@@ -74,6 +84,7 @@ export default function ServicesPage() {
       gradient: "from-teal-500 to-green-500",
     },
     {
+      id: "document-tools",
       icon: <FileImage className="w-8 h-8" />,
       title: "Document Tools",
       description:
@@ -81,6 +92,10 @@ export default function ServicesPage() {
       gradient: "from-indigo-500 to-purple-500",
     },
   ];
+
+  const handleServiceClick = (serviceId: string) => {
+    navigate(`/service/${serviceId}`);
+  };
 
   return (
     <Layout>
@@ -106,33 +121,32 @@ export default function ServicesPage() {
         {/* Services Grid */}
         <section className="container mx-auto px-4 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((service, index) => (
+            {mockServices.map((service, index) => (
               <Card
                 key={index}
-                className="bg-card border-border hover:bg-accent transition-all duration-300 group cursor-pointer h-full"
+                className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer"
+                onClick={() => handleServiceClick(service.id)}
               >
-                <CardContent className="p-6 flex flex-col h-full">
+                <CardContent className="p-6">
                   <div
                     className={`w-16 h-16 rounded-xl bg-gradient-to-r ${service.gradient} flex items-center justify-center mb-4 text-white`}
                   >
                     {service.icon}
                   </div>
-                  <div className="flex-grow">
-                    <h3 className="text-card-foreground font-semibold text-lg mb-2 flex items-center justify-between">
-                      {service.title}
-                      <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </h3>
-                    <p
-                      className="text-muted-foreground text-sm mb-4 line-clamp-3"
-                      title={service.description}
-                    >
-                      {service.description}
-                    </p>
-                  </div>
+                  <h3 className="text-white font-semibold text-lg mb-2 flex items-center justify-between">
+                    {service.title}
+                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </h3>
+                  <p className="text-gray-400 text-sm mb-4">
+                    {service.description}
+                  </p>
                   <Button
                     size="sm"
-                    className="w-full mt-auto"
-                    variant="secondary"
+                    className="w-full bg-gray-700 hover:bg-gray-600 text-white border-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleServiceClick(service.id);
+                    }}
                   >
                     Sélectionner ce service
                   </Button>
