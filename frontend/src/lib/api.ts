@@ -50,6 +50,24 @@ export interface UpdateServiceRequest {
   jsonSchema?: object;
 }
 
+export interface ServiceResponse {
+  _id: string;
+  title: string;
+  description: string;
+  iconName: string;
+  gradient: string;
+  status: "active" | "inactive";
+  type: "automatic" | "manual";
+  swaggerUrl?: string;
+  endpointUrl?: string;
+  apiKey?: string;
+  apiKeyHeader?: string;
+  jsonSchema?: object;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+}
+
 // Services API endpoints
 const SERVICES_BASE_URL = "http://localhost:3001";
 

@@ -54,9 +54,9 @@ export default function Navbar() {
   return (
     <nav className="h-16 bg-background px-8 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <img 
-          src="/assets/logo.png" 
-          alt="Nexolve Logo" 
+        <img
+          src="/assets/logo.png"
+          alt="Nexolve Logo"
           className="h-8 w-8 object-contain"
         />
         <div className="text-xl text-foreground">Nexolve</div>
@@ -85,6 +85,9 @@ export default function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
                 <DropdownMenuItem onClick={() => navigate("/services/list")}>
+                  Créer un service
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/services/manage")}>
                   Gérer mes services
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/profile/edit")}>
@@ -155,13 +158,23 @@ export default function Navbar() {
                     setIsMenuOpen(false);
                   }}
                 >
+                  Créer un service
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="justify-start"
+                  onClick={() => {
+                    navigate("/services/manage");
+                    setIsMenuOpen(false);
+                  }}
+                >
                   Gérer mes services
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start"
                   onClick={() => {
-                    navigate("/");
+                    navigate("/profile/edit");
                     setIsMenuOpen(false);
                   }}
                 >
