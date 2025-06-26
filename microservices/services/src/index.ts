@@ -14,7 +14,7 @@ app.use(
     origin: "http://localhost:5173",
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
-  }),
+  })
 );
 
 app.route("/services", servicesRouter);
@@ -27,11 +27,13 @@ connectToDatabase()
     serve(
       {
         fetch: app.fetch,
-        port: 3001,
+        port: 3002,
       },
       (info) => {
-        console.log(`Services microservice running on http://localhost:${info.port}`);
-      },
+        console.log(
+          `Services microservice running on http://localhost:${info.port}`
+        );
+      }
     );
   })
   .catch((error) => {

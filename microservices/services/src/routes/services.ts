@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import status from "http-status";
 import {
   handleCreateManualService,
+  handleCreateAutomatedService,
   handleDeleteService,
   handleGetAllActiveServices,
   handleGetService,
@@ -12,6 +13,7 @@ import {
 import { verifyJWT } from "../utils/auth.js";
 import {
   CreateManualServiceSchema,
+  CreateAutomatedServiceSchema,
   UpdateServiceSchema,
 } from "../utils/validation.js";
 
@@ -56,6 +58,33 @@ servicesRouter.post("/manual", jwtAuth, async (c) => {
     return c.json(service);
   } catch (error) {
     console.error("Error creating manual service:", error);
+    throw new HTTPException(status.INTERNAL_SERVER_ERROR, {
+      message: "Failed to create service",
+    });
+  }
+});
+
+// Create a new automated service
+servicesRouter.post("/automated", jwtAuth, async (c) => {
+  const userId = c.get("userId");
+  const body = await c.req.json();
+
+  const parseResult = CreateAutomatedServiceSchema.safeParse(body);
+  if (!parseResult.success) {
+    throw new HTTPException(status.BAD_REQUEST, {
+      message: "Invalid request data: " + parseResult.error.issues[0]?.message,
+    });
+  }
+
+  try {
+    const service = await handleCreateAutomatedService(
+      userId,
+      parseResult.data
+    );
+    c.status(status.CREATED);
+    return c.json(service);
+  } catch (error) {
+    console.error("Error creating automated service:", error);
     throw new HTTPException(status.INTERNAL_SERVER_ERROR, {
       message: "Failed to create service",
     });
@@ -127,7 +156,11 @@ servicesRouter.put("/:id", jwtAuth, async (c) => {
   }
 
   try {
-    const updatedService = await handleUpdateService(serviceId, userId, parseResult.data);
+    const updatedService = await handleUpdateService(
+      serviceId,
+      userId,
+      parseResult.data
+    );
     if (!updatedService) {
       throw new HTTPException(status.NOT_FOUND, {
         message: "Service not found",

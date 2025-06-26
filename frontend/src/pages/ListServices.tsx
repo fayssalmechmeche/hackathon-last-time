@@ -102,6 +102,7 @@ import { toast } from "sonner";
 import Layout from "../components/Layout";
 import {
   servicesApiMethods,
+  type CreateAutomatedServiceRequest,
   type CreateManualServiceRequest,
 } from "../lib/api";
 
@@ -116,6 +117,7 @@ interface Service {
   swaggerUrl?: string;
   fields?: FormField[];
   iconName?: string;
+  endpointUrl?: string;
 }
 
 interface FormField {
@@ -610,20 +612,44 @@ export default function AdminServicesPage() {
         );
         const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
 
+        const newServiceData: CreateAutomatedServiceRequest = {
+          title: formData.title,
+          description: formData.description,
+          iconName: formData.iconName,
+          gradient: formData.gradient,
+          status: formData.status,
+          swaggerUrl: formData.swaggerUrl,
+        };
+
+        const responseAutomatedService =
+          await servicesApiMethods.createAutomatedService(newServiceData);
+
         const newService: Service = {
-          id: Date.now(),
+          id: responseAutomatedService.data._id,
+          icon: <IconComponent className="w-8 h-8" />,
           title: formData.title,
           description: formData.description,
           type: "automatic",
           status: formData.status,
           gradient: formData.gradient,
-          icon: <IconComponent className="w-8 h-8" />,
           iconName: formData.iconName,
-          swaggerUrl: formData.swaggerUrl,
         };
 
         setServices((prev) => [...prev, newService]);
         setIsModalOpen(false);
+        toast.success("Service created successfully!");
+
+        // Reset form
+        setFormData({
+          title: "",
+          description: "",
+          swaggerUrl: "",
+          endpointUrl: "",
+          fields: [],
+          iconName: "Settings",
+          status: "active",
+          gradient: "from-purple-500 to-pink-500",
+        });
       }
     } catch (error) {
       console.error("Error creating service:", error);
@@ -1041,10 +1067,18 @@ export default function AdminServicesPage() {
                             }))
                           }
                         />
-                        <Button variant="outline">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            if (formData.swaggerUrl) {
+                              window.open(formData.swaggerUrl, "_blank");
+                            }
+                          }}
+                        >
                           <ExternalLink className="w-4 h-4" />
                         </Button>
                       </div>
+
                       <p className="text-xs text-muted-foreground mt-1">
                         L'IA analysera automatiquement le swagger pour générer
                         le formulaire

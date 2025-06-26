@@ -1,3 +1,4 @@
+import axios from "axios";
 import { v4 as uuidv4 } from "uuid";
 import type { ServiceDocument } from "../db/schema.js";
 import {
@@ -8,7 +9,11 @@ import {
   findServicesByUserId,
   updateService,
 } from "../models/service.js";
-import type { CreateManualServiceRequest, UpdateServiceRequest } from "../utils/validation.js";
+import type {
+  CreateAutomatedServiceRequest,
+  CreateManualServiceRequest,
+  UpdateServiceRequest,
+} from "../utils/validation.js";
 import { generateJSONSchemaFromFields } from "./schemaGenerator.js";
 
 export async function handleCreateManualService(
@@ -39,11 +44,44 @@ export async function handleCreateManualService(
   return await createService(serviceDocument);
 }
 
-export async function handleGetService(serviceId: string): Promise<ServiceDocument | null> {
+export async function handleCreateAutomatedService(
+  userId: string,
+  serviceData: CreateAutomatedServiceRequest
+): Promise<ServiceDocument> {
+  // Generate JSON Schema from the provided fields
+
+  const response = await axios.post("http://localhost:3001/swagger/import", {
+    link: serviceData.swaggerUrl,
+  });
+
+  const jsonSchema = response.data;
+
+  // Create the service document
+  const serviceDocument = {
+    _id: uuidv4(),
+    title: serviceData.title,
+    description: serviceData.description,
+    iconName: serviceData.iconName,
+    gradient: serviceData.gradient,
+    status: serviceData.status,
+    type: "automatic" as const,
+    swaggerUrl: serviceData.swaggerUrl,
+    jsonSchema,
+    createdBy: userId,
+  };
+
+  return await createService(serviceDocument);
+}
+
+export async function handleGetService(
+  serviceId: string
+): Promise<ServiceDocument | null> {
   return await findServiceById(serviceId);
 }
 
-export async function handleGetUserServices(userId: string): Promise<ServiceDocument[]> {
+export async function handleGetUserServices(
+  userId: string
+): Promise<ServiceDocument[]> {
   return await findServicesByUserId(userId);
 }
 
@@ -69,7 +107,10 @@ export async function handleUpdateService(
   return await updateService(serviceId, updates);
 }
 
-export async function handleDeleteService(serviceId: string, userId: string): Promise<boolean> {
+export async function handleDeleteService(
+  serviceId: string,
+  userId: string
+): Promise<boolean> {
   // First check if the service exists and belongs to the user
   const existingService = await findServiceById(serviceId);
   if (!existingService) {

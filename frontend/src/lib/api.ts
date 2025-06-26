@@ -36,6 +36,15 @@ export interface CreateManualServiceRequest {
   }>;
 }
 
+export interface CreateAutomatedServiceRequest {
+  title: string;
+  description: string;
+  iconName: string;
+  gradient: string;
+  status: "active" | "inactive";
+  swaggerUrl: string;
+}
+
 export interface UpdateServiceRequest {
   title?: string;
   description?: string;
@@ -47,7 +56,7 @@ export interface UpdateServiceRequest {
 }
 
 // Services API endpoints
-const SERVICES_BASE_URL = "http://localhost:3001";
+const SERVICES_BASE_URL = "http://localhost:3002";
 
 export const servicesApi = axios.create({
   baseURL: SERVICES_BASE_URL,
@@ -69,6 +78,9 @@ servicesApi.interceptors.request.use((config) => {
 export const servicesApiMethods = {
   createManualService: (serviceData: CreateManualServiceRequest) =>
     servicesApi.post("/services/manual", serviceData),
+
+  createAutomatedService: (serviceData: CreateAutomatedServiceRequest) =>
+    servicesApi.post("/services/automated", serviceData),
 
   getUserServices: () => servicesApi.get("/services/my"),
 

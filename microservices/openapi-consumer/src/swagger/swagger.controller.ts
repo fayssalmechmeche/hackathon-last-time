@@ -8,6 +8,7 @@ export class SwaggerController {
 
   @Post('import')
   analyzeOpenApi(@Body() body: AnalyzeOpenApiDto) {
+    console.log(body.link);
     return this.swaggerService.analyzeOpenApi(body);
   }
 }
