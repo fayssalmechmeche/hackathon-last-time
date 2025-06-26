@@ -97,17 +97,18 @@ import {
   XCircle,
   Zap,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Layout from "../components/Layout";
 import {
   servicesApiMethods,
   type CreateAutomatedServiceRequest,
   type CreateManualServiceRequest,
+  type ServiceResponse,
 } from "../lib/api";
 
 interface Service {
-  id: number;
+  _id: string;
   icon: React.ReactNode;
   title: string;
   description: string;
@@ -118,6 +119,10 @@ interface Service {
   fields?: FormField[];
   iconName?: string;
   endpointUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
+  jsonSchema?: object;
 }
 
 interface FormField {
@@ -403,45 +408,49 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
 };
 
 export default function AdminServicesPage() {
-  const [services, setServices] = useState<Service[]>([
-    {
-      id: 1,
-      icon: <FileText className="w-8 h-8" />,
-      title: "PDF Tools",
-      description:
-        "Convertir PDF en PNG, JPG, Word ou compresser vos fichiers PDF",
-      gradient: "from-pink-500 to-rose-500",
-      status: "active",
-      type: "automatic",
-      iconName: "FileText",
-    },
-    {
-      id: 2,
-      icon: <Image className="w-8 h-8" />,
-      title: "Image Tools",
-      description:
-        "Compresser, redimensionner, convertir vos images en différents formats",
-      gradient: "from-purple-500 to-indigo-500",
-      status: "active",
-      type: "manual",
-      iconName: "Image",
-    },
-    {
-      id: 3,
-      icon: <Video className="w-8 h-8" />,
-      title: "Video Tools",
-      description: "Compresser vidéos, extraire audio, convertir formats vidéo",
-      gradient: "from-blue-500 to-cyan-500",
-      status: "inactive",
-      type: "automatic",
-      iconName: "Video",
-    },
-  ]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fonction pour convertir ServiceResponse en Service avec icône
+  const convertServiceResponseToService = (
+    serviceResponse: ServiceResponse
+  ): Service => {
+    const selectedIcon = availableIcons.find(
+      (icon) => icon.name === serviceResponse.iconName
+    );
+    const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
+
+    return {
+      ...serviceResponse,
+      icon: <IconComponent className="w-8 h-8" />,
+    };
+  };
+
+  // Charger les services actifs au montage du composant
+  useEffect(() => {
+    const loadServices = async () => {
+      try {
+        setLoading(true);
+        const response = await servicesApiMethods.getActiveServices();
+        const servicesWithIcons = response.data.map(
+          convertServiceResponseToService
+        );
+        setServices(servicesWithIcons);
+      } catch (error) {
+        console.error("Error loading services:", error);
+        toast.error("Erreur lors du chargement des services");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadServices();
+  }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
   const [serviceType, setServiceType] = useState<"automatic" | "manual" | "">(
-    "",
+    ""
   );
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -499,7 +508,7 @@ export default function AdminServicesPage() {
     setFormData((prev) => ({
       ...prev,
       fields: prev.fields.map((field) =>
-        field.id === fieldId ? { ...field, ...updates } : field,
+        field.id === fieldId ? { ...field, ...updates } : field
       ),
     }));
   };
@@ -517,7 +526,7 @@ export default function AdminServicesPage() {
       fields: prev.fields.map((field) =>
         field.id === fieldId
           ? { ...field, options: [...(field.options || []), ""] }
-          : field,
+          : field
       ),
     }));
   };
@@ -525,7 +534,7 @@ export default function AdminServicesPage() {
   const updateSelectOption = (
     fieldId: number,
     optionIndex: number,
-    value: string,
+    value: string
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -534,10 +543,10 @@ export default function AdminServicesPage() {
           ? {
               ...field,
               options: field.options?.map((opt, idx) =>
-                idx === optionIndex ? value : opt,
+                idx === optionIndex ? value : opt
               ),
             }
-          : field,
+          : field
       ),
     }));
   };
@@ -551,7 +560,7 @@ export default function AdminServicesPage() {
               ...field,
               options: field.options?.filter((_, idx) => idx !== optionIndex),
             }
-          : field,
+          : field
       ),
     }));
   };
@@ -572,28 +581,15 @@ export default function AdminServicesPage() {
           fields: formData.fields,
         };
 
-        const response =
-          await servicesApiMethods.createManualService(serviceData);
+        await servicesApiMethods.createManualService(serviceData);
 
-        // Update local state with the created service
-        const selectedIcon = availableIcons.find(
-          (icon) => icon.name === formData.iconName,
+        // Recharger tous les services depuis l'API
+        const response = await servicesApiMethods.getActiveServices();
+        const servicesWithIcons = response.data.map(
+          convertServiceResponseToService
         );
-        const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
+        setServices(servicesWithIcons);
 
-        const newService: Service = {
-          id: response.data._id, // Use the UUID from the database
-          title: formData.title,
-          description: formData.description,
-          type: "manual",
-          status: formData.status,
-          gradient: formData.gradient,
-          icon: <IconComponent className="w-8 h-8" />,
-          iconName: formData.iconName,
-          fields: formData.fields,
-        };
-
-        setServices((prev) => [...prev, newService]);
         setIsModalOpen(false);
 
         // Reset form
@@ -613,12 +609,7 @@ export default function AdminServicesPage() {
         // Show success message
         toast.success("Service créé avec succès");
       } else {
-        // For automatic services, keep the old behavior for now
-        const selectedIcon = availableIcons.find(
-          (icon) => icon.name === formData.iconName,
-        );
-        const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
-
+        // For automatic services
         const newServiceData: CreateAutomatedServiceRequest = {
           title: formData.title,
           description: formData.description,
@@ -628,21 +619,15 @@ export default function AdminServicesPage() {
           swaggerUrl: formData.swaggerUrl,
         };
 
-        const responseAutomatedService =
-          await servicesApiMethods.createAutomatedService(newServiceData);
+        await servicesApiMethods.createAutomatedService(newServiceData);
 
-        const newService: Service = {
-          id: responseAutomatedService.data._id,
-          icon: <IconComponent className="w-8 h-8" />,
-          title: formData.title,
-          description: formData.description,
-          type: "automatic",
-          status: formData.status,
-          gradient: formData.gradient,
-          iconName: formData.iconName,
-        };
+        // Recharger tous les services depuis l'API
+        const response = await servicesApiMethods.getActiveServices();
+        const servicesWithIcons = response.data.map(
+          convertServiceResponseToService
+        );
+        setServices(servicesWithIcons);
 
-        setServices((prev) => [...prev, newService]);
         setIsModalOpen(false);
         toast.success("Service créé avec succès");
 
@@ -662,20 +647,20 @@ export default function AdminServicesPage() {
       }
     } catch (error) {
       console.error("Error creating service:", error);
-      toast.error("Failed to create service. Please try again.");
+      toast.error("Erreur lors de la création du service. Veuillez réessayer.");
     }
   };
 
   const filteredServices = services.filter(
     (service) =>
       service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase()),
+      service.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const filteredIcons = availableIcons.filter(
     (icon) =>
       icon.name.toLowerCase().includes(iconSearchTerm.toLowerCase()) ||
-      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase()),
+      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase())
   );
 
   const getFieldIcon = (type: FormField["type"]) => {
@@ -747,62 +732,80 @@ export default function AdminServicesPage() {
 
         {/* Services List */}
         <section className="container mx-auto px-4 pb-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredServices.map((service) => (
-              <Card
-                key={service.id}
-                className="bg-card border-border hover:bg-accent/50 transition-all duration-300 group"
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div
-                      className={`w-12 h-12 rounded-lg bg-gradient-to-r ${service.gradient} flex items-center justify-center text-white`}
-                    >
-                      {service.icon}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+          {loading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredServices.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <div className="text-muted-foreground mb-4">
+                    <Settings className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg">Aucun service disponible</p>
+                    <p className="text-sm">
+                      Commencez par ajouter votre premier service
+                    </p>
                   </div>
+                </div>
+              ) : (
+                filteredServices.map((service) => (
+                  <Card
+                    key={service._id}
+                    className="bg-card border-border hover:bg-accent/50 transition-all duration-300 group"
+                  >
+                    <CardContent className="p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div
+                          className={`w-12 h-12 rounded-lg bg-gradient-to-r ${service.gradient} flex items-center justify-center text-white`}
+                        >
+                          {service.icon}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="ghost" size="sm">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
 
-                  <h3 className="font-semibold text-lg mb-2 text-card-foreground">
-                    {service.title}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                    {service.description}
-                  </p>
+                      <h3 className="font-semibold text-lg mb-2 text-card-foreground">
+                        {service.title}
+                      </h3>
+                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                        {service.description}
+                      </p>
 
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          service.status === "active"
-                            ? "bg-green-500"
-                            : "bg-red-500"
-                        }`}
-                      ></span>
-                      <span className="text-xs text-muted-foreground capitalize">
-                        {service.status}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      {service.type === "automatic" ? (
-                        <Bot className="w-3 h-3" />
-                      ) : (
-                        <Settings className="w-3 h-3" />
-                      )}
-                      {service.type}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              service.status === "active"
+                                ? "bg-green-500"
+                                : "bg-red-500"
+                            }`}
+                          ></span>
+                          <span className="text-xs text-muted-foreground capitalize">
+                            {service.status}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          {service.type === "automatic" ? (
+                            <Bot className="w-3 h-3" />
+                          ) : (
+                            <Settings className="w-3 h-3" />
+                          )}
+                          {service.type}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          )}
         </section>
 
         {/* Modal */}
@@ -985,9 +988,9 @@ export default function AdminServicesPage() {
                         >
                           {React.createElement(
                             availableIcons.find(
-                              (icon) => icon.name === formData.iconName,
+                              (icon) => icon.name === formData.iconName
                             )?.icon || Settings,
-                            { className: "w-6 h-6" },
+                            { className: "w-6 h-6" }
                           )}
                         </div>
                         <div className="flex-1">
@@ -1242,7 +1245,7 @@ export default function AdminServicesPage() {
                                             updateSelectOption(
                                               field.id,
                                               idx,
-                                              e.target.value,
+                                              e.target.value
                                             )
                                           }
                                           className="text-sm sm:text-base"
