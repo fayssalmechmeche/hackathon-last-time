@@ -32,6 +32,8 @@ export async function handleCreateManualService(
     status: serviceData.status,
     type: "manual" as const,
     endpointUrl: serviceData.endpointUrl,
+    apiKey: serviceData.apiKey,
+    apiKeyHeader: serviceData.apiKeyHeader,
     jsonSchema,
     createdBy: userId,
   };
