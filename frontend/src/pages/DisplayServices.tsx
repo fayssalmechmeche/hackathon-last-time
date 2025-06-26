@@ -10,6 +10,7 @@ import {
   Video,
   Zap,
 } from "lucide-react";
+import { Link } from "react-router";
 import Layout from "../components/Layout";
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
@@ -95,9 +96,11 @@ export default function ServicesPage() {
           <p className="text-muted-foreground text-base max-w-lg mx-auto mb-6">
             Vous souhaitez intégrer votre propre service à Nexolve ?
           </p>
-          <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-full text-lg">
-            Déposer mon service
-          </Button>
+          <Link to="/services/list">
+            <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white px-8 py-3 rounded-full text-lg">
+              Déposer mon service
+            </Button>
+          </Link>
         </section>
 
         {/* Services Grid */}

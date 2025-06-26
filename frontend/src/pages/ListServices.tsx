@@ -99,6 +99,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import Layout from "../components/Layout";
 import {
   servicesApiMethods,
   type CreateManualServiceRequest,
@@ -156,10 +157,6 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   title: string;
-}
-
-interface LayoutProps {
-  children: React.ReactNode;
 }
 
 // Liste des icônes disponibles
@@ -313,24 +310,6 @@ const availableGradients = [
   },
 ];
 
-const FrontLayout: React.FC<LayoutProps> = ({ children }) => (
-  <div className="min-h-screen bg-background">
-    <nav className="border-b border-border bg-card">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">
-            Admin - Nexolve
-          </h1>
-          <div className="text-sm text-muted-foreground">
-            Gestion des services
-          </div>
-        </div>
-      </div>
-    </nav>
-    {children}
-  </div>
-);
-
 const Button: React.FC<ButtonProps> = ({
   children,
   variant = "default",
@@ -459,7 +438,7 @@ export default function AdminServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
   const [serviceType, setServiceType] = useState<"automatic" | "manual" | "">(
-    ""
+    "",
   );
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -514,7 +493,7 @@ export default function AdminServicesPage() {
     setFormData((prev) => ({
       ...prev,
       fields: prev.fields.map((field) =>
-        field.id === fieldId ? { ...field, ...updates } : field
+        field.id === fieldId ? { ...field, ...updates } : field,
       ),
     }));
   };
@@ -532,7 +511,7 @@ export default function AdminServicesPage() {
       fields: prev.fields.map((field) =>
         field.id === fieldId
           ? { ...field, options: [...(field.options || []), ""] }
-          : field
+          : field,
       ),
     }));
   };
@@ -540,7 +519,7 @@ export default function AdminServicesPage() {
   const updateSelectOption = (
     fieldId: number,
     optionIndex: number,
-    value: string
+    value: string,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -549,10 +528,10 @@ export default function AdminServicesPage() {
           ? {
               ...field,
               options: field.options?.map((opt, idx) =>
-                idx === optionIndex ? value : opt
+                idx === optionIndex ? value : opt,
               ),
             }
-          : field
+          : field,
       ),
     }));
   };
@@ -566,7 +545,7 @@ export default function AdminServicesPage() {
               ...field,
               options: field.options?.filter((_, idx) => idx !== optionIndex),
             }
-          : field
+          : field,
       ),
     }));
   };
@@ -585,13 +564,12 @@ export default function AdminServicesPage() {
           fields: formData.fields,
         };
 
-        const response = await servicesApiMethods.createManualService(
-          serviceData
-        );
+        const response =
+          await servicesApiMethods.createManualService(serviceData);
 
         // Update local state with the created service
         const selectedIcon = availableIcons.find(
-          (icon) => icon.name === formData.iconName
+          (icon) => icon.name === formData.iconName,
         );
         const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
 
@@ -627,7 +605,7 @@ export default function AdminServicesPage() {
       } else {
         // For automatic services, keep the old behavior for now
         const selectedIcon = availableIcons.find(
-          (icon) => icon.name === formData.iconName
+          (icon) => icon.name === formData.iconName,
         );
         const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
 
@@ -655,13 +633,13 @@ export default function AdminServicesPage() {
   const filteredServices = services.filter(
     (service) =>
       service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase())
+      service.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const filteredIcons = availableIcons.filter(
     (icon) =>
       icon.name.toLowerCase().includes(iconSearchTerm.toLowerCase()) ||
-      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase())
+      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase()),
   );
 
   const getFieldIcon = (type: FormField["type"]) => {
@@ -682,13 +660,13 @@ export default function AdminServicesPage() {
   };
 
   return (
-    <FrontLayout>
+    <Layout>
       <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
         {/* Header */}
         <section className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Gestion des Services</h1>
+              <h1 className="text-3xl font-bold mb-2">Mes services</h1>
               <p className="text-muted-foreground">
                 Administrez vos services Nexolve - Ajoutez, modifiez ou
                 supprimez des services
@@ -697,8 +675,8 @@ export default function AdminServicesPage() {
             <Button
               onClick={handleAddService}
               className="
-    bg-gradient-to-r from-purple-500 to-pink-500 
-    hover:from-purple-600 hover:to-pink-600 
+    bg-gradient-to-r from-purple-500 to-pink-500
+    hover:from-purple-600 hover:to-pink-600
     text-white
     w-full sm:w-auto
     px-3 sm:px-4 lg:px-6
@@ -925,9 +903,9 @@ export default function AdminServicesPage() {
                         >
                           {React.createElement(
                             availableIcons.find(
-                              (icon) => icon.name === formData.iconName
+                              (icon) => icon.name === formData.iconName,
                             )?.icon || Settings,
-                            { className: "w-6 h-6" }
+                            { className: "w-6 h-6" },
                           )}
                         </div>
                         <div className="flex-1">
@@ -1184,7 +1162,7 @@ export default function AdminServicesPage() {
                                             updateSelectOption(
                                               field.id,
                                               idx,
-                                              e.target.value
+                                              e.target.value,
                                             )
                                           }
                                           className="text-sm sm:text-base"
@@ -1275,6 +1253,6 @@ export default function AdminServicesPage() {
           </div>
         </Modal>
       </div>
-    </FrontLayout>
+    </Layout>
   );
 }

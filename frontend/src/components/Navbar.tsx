@@ -84,7 +84,7 @@ export default function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuItem onClick={() => navigate("/")}>
+                <DropdownMenuItem onClick={() => navigate("/services/list")}>
                   Gérer mes services
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/profile/edit")}>
@@ -151,7 +151,7 @@ export default function Navbar() {
                   variant="ghost"
                   className="justify-start"
                   onClick={() => {
-                    navigate("/");
+                    navigate("/services/list");
                     setIsMenuOpen(false);
                   }}
                 >
