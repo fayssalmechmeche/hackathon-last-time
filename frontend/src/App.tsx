@@ -56,7 +56,7 @@ const router = createBrowserRouter([
     ),
   },
   {
-    path: "/service/:serviceId",
+    path: "/services/:serviceId",
     element: <ServiceFormPage />,
   },
 ]);
