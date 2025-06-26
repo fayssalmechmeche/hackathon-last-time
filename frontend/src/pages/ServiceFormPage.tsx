@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Form from "@rjsf/core";
 import validator from "@rjsf/validator-ajv8";
+import Layout from "../components/Layout";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -613,168 +614,185 @@ export default function ServiceFormPage() {
 
   if (!serviceConfig) {
     return (
-      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Service non trouvé</h1>
-          <Button
-            onClick={handleGoBack}
-            className="bg-purple-600 hover:bg-purple-700"
-          >
-            Retour aux services
-          </Button>
+      <Layout>
+        <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Service non trouvé</h1>
+            <Button
+              onClick={handleGoBack}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+            >
+              Retour aux services
+            </Button>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            onClick={handleGoBack}
-            className="text-gray-300 hover:text-white mr-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Retour
-          </Button>
-          <h1 className="text-3xl font-bold">{serviceConfig.title}</h1>
+    <Layout>
+      <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
+        <div className="container mx-auto px-4 py-8">
+          {/* Header */}
+          <div className="flex items-center mb-6">
+            <Button
+              variant="ghost"
+              onClick={handleGoBack}
+              className="text-muted-foreground hover:text-foreground mr-4"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Retour
+            </Button>
+            <h1 className="text-3xl font-bold">{serviceConfig.title}</h1>
+          </div>
+
+          {/* Description */}
+          <p className="text-muted-foreground text-lg mb-8 max-w-2xl">
+            {serviceConfig.description}
+          </p>
+
+          {/* Form */}
+          <Card className="bg-card border-border max-w-4xl mx-auto">
+            <CardHeader>
+              <CardTitle className="text-foreground">
+                Configuration du service
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rjsf-form">
+                <Form
+                  schema={serviceConfig.schema}
+                  uiSchema={serviceConfig.uiSchema}
+                  formData={formData}
+                  validator={validator}
+                  onChange={(e) => setFormData(e.formData)}
+                  onSubmit={handleSubmit}
+                  disabled={isSubmitting}
+                >
+                  <div className="flex gap-4 mt-6">
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                    >
+                      {isSubmitting ? (
+                        "Traitement en cours..."
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Lancer le traitement
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleGoBack}
+                      disabled={isSubmitting}
+                      className="border-border text-muted-foreground hover:bg-muted"
+                    >
+                      Annuler
+                    </Button>
+                  </div>
+                </Form>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* Description */}
-        <p className="text-gray-400 text-lg mb-8 max-w-2xl">
-          {serviceConfig.description}
-        </p>
+        {/* Custom styles for RJSF */}
+        <style jsx global>{`
+          .rjsf-form .form-group {
+            margin-bottom: 1.5rem;
+          }
 
-        {/* Form */}
-        <Card className="bg-gray-800 border-gray-700 max-w-4xl mx-auto">
-          <CardHeader>
-            <CardTitle className="text-white">
-              Configuration du service
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="rjsf-form">
-              <Form
-                schema={serviceConfig.schema}
-                uiSchema={serviceConfig.uiSchema}
-                formData={formData}
-                validator={validator}
-                onChange={(e) => setFormData(e.formData)}
-                onSubmit={handleSubmit}
-                disabled={isSubmitting}
-              >
-                <div className="flex gap-4 mt-6">
-                  <Button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
-                  >
-                    {isSubmitting ? (
-                      "Traitement en cours..."
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Lancer le traitement
-                      </>
-                    )}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleGoBack}
-                    disabled={isSubmitting}
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                  >
-                    Annuler
-                  </Button>
-                </div>
-              </Form>
-            </div>
-          </CardContent>
-        </Card>
+          .rjsf-form label {
+            color: #f9fafb !important;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            display: block;
+          }
+
+          .rjsf-form input,
+          .rjsf-form select,
+          .rjsf-form textarea {
+            background-color: #374151 !important;
+            border: 1px solid #6b7280 !important;
+            color: #f9fafb !important;
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            width: 100%;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+          }
+
+          .rjsf-form input:focus,
+          .rjsf-form select:focus,
+          .rjsf-form textarea:focus {
+            outline: none !important;
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+          }
+
+          .rjsf-form input:hover,
+          .rjsf-form select:hover,
+          .rjsf-form textarea:hover {
+            border-color: #9ca3af !important;
+          }
+
+          .rjsf-form .form-check-input {
+            width: auto;
+          }
+
+          /* Amélioration de la visibilité des boutons de fichier */
+          .rjsf-form input[type="file"] {
+            background-color: #4b5563 !important;
+            border: 2px dashed #6b7280 !important;
+            color: #f9fafb !important;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+
+          .rjsf-form input[type="file"]:hover {
+            border-color: #8b5cf6 !important;
+            background-color: #374151 !important;
+          }
+
+          /* Style des options select */
+          .rjsf-form select option {
+            background-color: #374151 !important;
+            color: #f9fafb !important;
+          }
+
+          /* Style des checkboxes et radio buttons */
+          .rjsf-form input[type="checkbox"],
+          .rjsf-form input[type="radio"] {
+            width: 1rem;
+            height: 1rem;
+            margin-right: 0.5rem;
+            accent-color: #8b5cf6;
+          }
+
+          /* Style des ranges */
+          .rjsf-form input[type="range"] {
+            background: #4b5563 !important;
+            height: 6px;
+            border-radius: 3px;
+            padding: 0;
+          }
+
+          .rjsf-form input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #8b5cf6 !important;
+            cursor: pointer;
+          }
+        `}</style>
       </div>
-
-      {/* Custom styles for RJSF */}
-      <style jsx global>{`
-        .rjsf-form .form-group {
-          margin-bottom: 1.5rem;
-        }
-
-        .rjsf-form label {
-          color: #f3f4f6;
-          font-weight: 500;
-          margin-bottom: 0.5rem;
-          display: block;
-        }
-
-        .rjsf-form input,
-        .rjsf-form select,
-        .rjsf-form textarea {
-          background-color: #374151;
-          border: 1px solid #4b5563;
-          color: #f3f4f6;
-          border-radius: 0.375rem;
-          padding: 0.5rem 0.75rem;
-          width: 100%;
-        }
-
-        .rjsf-form input:focus,
-        .rjsf-form select:focus,
-        .rjsf-form textarea:focus {
-          outline: none;
-          border-color: #8b5cf6;
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-        }
-
-        .rjsf-form .form-check-input {
-          width: auto;
-        }
-
-        .rjsf-form .btn-add {
-          background-color: #059669;
-          color: white;
-          border: none;
-          padding: 0.5rem 1rem;
-          border-radius: 0.375rem;
-          margin-top: 0.5rem;
-        }
-
-        .rjsf-form .btn-danger {
-          background-color: #dc2626;
-          color: white;
-          border: none;
-          padding: 0.25rem 0.5rem;
-          border-radius: 0.375rem;
-        }
-
-        .rjsf-form .help-block {
-          color: #9ca3af;
-          font-size: 0.875rem;
-          margin-top: 0.25rem;
-        }
-
-        .rjsf-form .field-error {
-          color: #ef4444;
-          font-size: 0.875rem;
-          margin-top: 0.25rem;
-        }
-
-        .rjsf-form fieldset {
-          border: 1px solid #4b5563;
-          border-radius: 0.375rem;
-          padding: 1rem;
-          margin-bottom: 1rem;
-        }
-
-        .rjsf-form legend {
-          color: #f3f4f6;
-          font-weight: 500;
-          padding: 0 0.5rem;
-        }
-      `}</style>
-    </div>
+    </Layout>
   );
 }
