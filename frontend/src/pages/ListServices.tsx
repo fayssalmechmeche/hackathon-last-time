@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Layout from "../components/Layout";
 import {
   FileText,
   Image,
@@ -152,10 +153,6 @@ interface ModalProps {
   title: string;
 }
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
 // Liste des icônes disponibles
 const availableIcons = [
   { name: "FileText", icon: FileText, label: "Document" },
@@ -306,24 +303,6 @@ const availableGradients = [
     preview: "bg-gradient-to-r from-cyan-500 to-blue-500",
   },
 ];
-
-const FrontLayout: React.FC<LayoutProps> = ({ children }) => (
-  <div className="min-h-screen bg-background">
-    <nav className="border-b border-border bg-card">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-foreground">
-            Admin - Nexolve
-          </h1>
-          <div className="text-sm text-muted-foreground">
-            Gestion des services
-          </div>
-        </div>
-      </div>
-    </nav>
-    {children}
-  </div>
-);
 
 const Button: React.FC<ButtonProps> = ({
   children,
@@ -617,7 +596,7 @@ export default function AdminServicesPage() {
   };
 
   return (
-    <FrontLayout>
+    <Layout>
       <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
         {/* Header */}
         <section className="container mx-auto px-4 py-8">
@@ -1188,6 +1167,6 @@ export default function AdminServicesPage() {
           </div>
         </Modal>
       </div>
-    </FrontLayout>
+    </Layout>
   );
 }
