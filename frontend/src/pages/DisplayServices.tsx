@@ -9,6 +9,7 @@ import {
   Search,
   Video,
   Zap,
+  Loader2,
 } from "lucide-react";
 import { Link } from "react-router";
 import Layout from "../components/Layout";
@@ -23,79 +24,87 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { servicesApiMethods, type ServiceResponse } from "../lib/api";
 
 export default function DisplayServices() {
   const navigate = useNavigate();
+  const [services, setServices] = useState<ServiceResponse[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const mockServices = [
-    {
-      id: "pdf-tools",
-      icon: <FileText className="w-8 h-8" />,
-      title: "PDF Tools",
-      description:
-        "Convertir PDF en PNG, JPG, Word ou compresser vos fichiers PDF",
-      gradient: "from-pink-500 to-rose-500",
-    },
-    {
-      id: "image-tools",
-      icon: <ImageIcon className="w-8 h-8" />,
-      title: "Image Tools",
-      description:
-        "Compresser, redimensionner, convertir vos images en différents formats",
-      gradient: "from-purple-500 to-indigo-500",
-    },
-    {
-      id: "video-tools",
-      icon: <Video className="w-8 h-8" />,
-      title: "Video Tools",
-      description: "Compresser vidéos, extraire audio, convertir formats vidéo",
-      gradient: "from-blue-500 to-cyan-500",
-    },
-    {
-      id: "audio-tools",
-      icon: <Music className="w-8 h-8" />,
-      title: "Audio Tools",
-      description:
-        "Convertir MP3, WAV, compresser fichiers audio, extraire son",
-      gradient: "from-green-500 to-emerald-500",
-    },
-    {
-      id: "quick-convert",
-      icon: <Zap className="w-8 h-8" />,
-      title: "Quick Convert",
-      description:
-        "Conversion rapide entre tous formats de fichiers populaires",
-      gradient: "from-yellow-500 to-orange-500",
-    },
-    {
-      id: "design-tools",
-      icon: <Palette className="w-8 h-8" />,
-      title: "Design Tools",
-      description:
-        "Créer logos, bannières, redimensionner pour réseaux sociaux",
-      gradient: "from-red-500 to-pink-500",
-    },
-    {
-      id: "data-tools",
-      icon: <Database className="w-8 h-8" />,
-      title: "Data Tools",
-      description:
-        "Convertir CSV, Excel, JSON, nettoyer et organiser vos données",
-      gradient: "from-teal-500 to-green-500",
-    },
-    {
-      id: "document-tools",
-      icon: <FileImage className="w-8 h-8" />,
-      title: "Document Tools",
-      description:
-        "Fusionner, diviser, protéger vos documents et présentations",
-      gradient: "from-indigo-500 to-purple-500",
-    },
-  ];
+  // Mappage des icônes par nom
+  const iconMap: Record<string, React.ReactElement> = {
+    FileText: <FileText className="w-8 h-8" />,
+    ImageIcon: <ImageIcon className="w-8 h-8" />,
+    Video: <Video className="w-8 h-8" />,
+    Music: <Music className="w-8 h-8" />,
+    Zap: <Zap className="w-8 h-8" />,
+    Palette: <Palette className="w-8 h-8" />,
+    Database: <Database className="w-8 h-8" />,
+    FileImage: <FileImage className="w-8 h-8" />,
+  };
+
+  const getIconForService = (iconName: string) => {
+    return iconMap[iconName] || <FileText className="w-8 h-8" />;
+  };
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await servicesApiMethods.getActiveServices();
+        setServices(response.data);
+      } catch (error) {
+        console.error("Erreur lors du chargement des services:", error);
+        setError("Impossible de charger les services");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchServices();
+  }, []);
 
   const handleServiceClick = (serviceId: string) => {
     navigate(`/service/${serviceId}`);
   };
+
+  // Gestion de l'état de chargement
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+            <h1 className="text-2xl font-bold mb-4">
+              Chargement des services...
+            </h1>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Gestion de l'état d'erreur
+  if (error) {
+    return (
+      <Layout>
+        <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">{error}</h1>
+            <Button
+              onClick={() => window.location.reload()}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+            >
+              Réessayer
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -121,17 +130,17 @@ export default function DisplayServices() {
         {/* Services Grid */}
         <section className="container mx-auto px-4 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {mockServices.map((service, index) => (
+            {services.map((service) => (
               <Card
-                key={index}
+                key={service._id}
                 className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer"
-                onClick={() => handleServiceClick(service.id)}
+                onClick={() => handleServiceClick(service._id)}
               >
                 <CardContent className="p-6">
                   <div
                     className={`w-16 h-16 rounded-xl bg-gradient-to-r ${service.gradient} flex items-center justify-center mb-4 text-white`}
                   >
-                    {service.icon}
+                    {getIconForService(service.iconName)}
                   </div>
                   <h3 className="text-white font-semibold text-lg mb-2 flex items-center justify-between">
                     {service.title}
@@ -145,7 +154,7 @@ export default function DisplayServices() {
                     className="w-full bg-gray-700 hover:bg-gray-600 text-white border-0"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleServiceClick(service.id);
+                      handleServiceClick(service._id);
                     }}
                   >
                     Sélectionner ce service
