@@ -6,6 +6,8 @@ import { HttpService } from '@nestjs/axios';
 import { AnalyzeOpenApiDto } from './dto/analyze-openapi.dto';
 import { firstValueFrom } from 'rxjs';
 import { v4 as uuidv4 } from 'uuid';
+import * as yaml from 'js-yaml';
+
 @Injectable()
 export class SwaggerService {
   constructor(private readonly httpService: HttpService) {}
@@ -16,10 +18,57 @@ export class SwaggerService {
       throw new Error('Failed to fetch OpenAPI document');
     }
 
-    const swagger = response.data;
+    let swagger: any;
+
+    // Déterminer le type de contenu et parser en conséquence
+    if (body.link.endsWith('.yaml') || body.link.endsWith('.yml')) {
+      // Si c'est une chaîne, c'est probablement du YAML
+      try {
+        swagger = yaml.load(response.data) as any;
+      } catch (yamlError) {
+        // Si le parsing YAML échoue, essayer de parser comme JSON
+        try {
+          swagger = JSON.parse(response.data);
+        } catch (jsonError) {
+          throw new Error('Failed to parse OpenAPI document as YAML or JSON');
+        }
+      }
+    } else {
+      // Si c'est déjà un objet, c'est du JSON parsé automatiquement
+      swagger = response.data;
+    }
+
+    // Vérifier que c'est bien un document OpenAPI/Swagger valide
+    if (!swagger || (!swagger.swagger && !swagger.openapi)) {
+      throw new Error('Invalid OpenAPI/Swagger document');
+    }
 
     const jsonSchema = this.formatJsonSchema(swagger);
     return jsonSchema;
+  }
+
+  /**
+   * Détecte le type de contenu basé sur l'URL ou les headers
+   */
+  private detectContentType(
+    url: string,
+    contentType?: string,
+  ): 'yaml' | 'json' {
+    if (contentType) {
+      if (contentType.includes('yaml') || contentType.includes('yml')) {
+        return 'yaml';
+      }
+      if (contentType.includes('json')) {
+        return 'json';
+      }
+    }
+
+    // Fallback sur l'extension du fichier
+    if (url.endsWith('.yaml') || url.endsWith('.yml')) {
+      return 'yaml';
+    }
+
+    return 'json'; // Par défaut
   }
 
   formatJsonSchema(swagger: any): any {
