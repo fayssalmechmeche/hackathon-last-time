@@ -46,7 +46,6 @@ interface FormField {
   id: number;
   type: "file" | "text" | "number" | "date" | "select";
   label: string;
-  placeholder: string;
   required: boolean;
   options?: string[];
 }
@@ -185,7 +184,6 @@ export default function ManageServicesPage() {
       id: Date.now() + Math.random(), // Ensure unique ID
       type,
       label: "",
-      placeholder: "",
       required: false,
       options: type === "select" ? [""] : undefined,
     };
@@ -264,9 +262,11 @@ export default function ManageServicesPage() {
     let fields: FormField[] = [];
     if (service.type === "manual" && service.jsonSchema) {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const schema = service.jsonSchema as any;
         if (schema.properties) {
           fields = Object.entries(schema.properties).map(
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             ([key, prop]: [string, any], index) => {
               // Determine field type based on schema property
               let fieldType: FormField["type"] = "text";
@@ -287,7 +287,6 @@ export default function ManageServicesPage() {
                 id: index + 1,
                 type: fieldType,
                 label: prop.title || key.charAt(0).toUpperCase() + key.slice(1),
-                placeholder: prop.description || prop.placeholder || "",
                 required: schema.required?.includes(key) || false,
                 options: fieldType === "select" ? prop.enum : undefined,
               };
@@ -848,21 +847,12 @@ export default function ManageServicesPage() {
                         </div>
 
                         <div className="flex-1 space-y-3">
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-1 gap-2">
                             <Input
-                              placeholder="Label du champ"
+                              placeholder="Label du champ (ex: Fichier à traiter)"
                               value={field.label}
                               onChange={(e) =>
                                 updateField(field.id, { label: e.target.value })
-                              }
-                            />
-                            <Input
-                              placeholder="Placeholder"
-                              value={field.placeholder}
-                              onChange={(e) =>
-                                updateField(field.id, {
-                                  placeholder: e.target.value,
-                                })
                               }
                             />
                           </div>

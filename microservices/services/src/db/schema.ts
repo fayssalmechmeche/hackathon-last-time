@@ -23,7 +23,6 @@ export interface FormField {
   id: number;
   type: "file" | "text" | "number" | "date" | "select";
   label: string;
-  placeholder: string;
   required: boolean;
   options?: string[];
 }

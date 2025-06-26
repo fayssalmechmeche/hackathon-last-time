@@ -4,7 +4,6 @@ export const FormFieldSchema = z.object({
   id: z.number(),
   type: z.enum(["file", "text", "number", "date", "select"]),
   label: z.string().min(1),
-  placeholder: z.string(),
   required: z.boolean(),
   options: z.array(z.string()).optional(),
 });

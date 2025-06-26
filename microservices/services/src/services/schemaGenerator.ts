@@ -17,7 +17,6 @@ export function generateJSONSchemaFromFields(
         properties[fieldName] = {
           type: "string",
           title: field.label,
-          description: field.placeholder || field.label,
         };
         break;
       
@@ -25,7 +24,6 @@ export function generateJSONSchemaFromFields(
         properties[fieldName] = {
           type: "number",
           title: field.label,
-          description: field.placeholder || field.label,
         };
         break;
       
@@ -34,7 +32,6 @@ export function generateJSONSchemaFromFields(
           type: "string",
           format: "date",
           title: field.label,
-          description: field.placeholder || field.label,
         };
         break;
       
@@ -42,7 +39,6 @@ export function generateJSONSchemaFromFields(
         properties[fieldName] = {
           type: "string",
           title: field.label,
-          description: field.placeholder || field.label,
           enum: field.options || [],
         };
         break;
@@ -52,7 +48,6 @@ export function generateJSONSchemaFromFields(
           type: "string",
           format: "data-url",
           title: field.label,
-          description: field.placeholder || field.label,
         };
         break;
       
@@ -60,7 +55,6 @@ export function generateJSONSchemaFromFields(
         properties[fieldName] = {
           type: "string",
           title: field.label,
-          description: field.placeholder || field.label,
         };
     }
 

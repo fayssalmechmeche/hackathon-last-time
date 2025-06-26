@@ -124,7 +124,6 @@ interface FormField {
   id: number;
   type: "file" | "text" | "number" | "date" | "select";
   label: string;
-  placeholder: string;
   required: boolean;
   options?: string[];
 }
@@ -442,7 +441,7 @@ export default function AdminServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
   const [serviceType, setServiceType] = useState<"automatic" | "manual" | "">(
-    ""
+    "",
   );
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -487,7 +486,6 @@ export default function AdminServicesPage() {
       id: Date.now(),
       type,
       label: "",
-      placeholder: "",
       required: false,
       options: type === "select" ? [""] : undefined,
     };
@@ -501,7 +499,7 @@ export default function AdminServicesPage() {
     setFormData((prev) => ({
       ...prev,
       fields: prev.fields.map((field) =>
-        field.id === fieldId ? { ...field, ...updates } : field
+        field.id === fieldId ? { ...field, ...updates } : field,
       ),
     }));
   };
@@ -519,7 +517,7 @@ export default function AdminServicesPage() {
       fields: prev.fields.map((field) =>
         field.id === fieldId
           ? { ...field, options: [...(field.options || []), ""] }
-          : field
+          : field,
       ),
     }));
   };
@@ -527,7 +525,7 @@ export default function AdminServicesPage() {
   const updateSelectOption = (
     fieldId: number,
     optionIndex: number,
-    value: string
+    value: string,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -536,10 +534,10 @@ export default function AdminServicesPage() {
           ? {
               ...field,
               options: field.options?.map((opt, idx) =>
-                idx === optionIndex ? value : opt
+                idx === optionIndex ? value : opt,
               ),
             }
-          : field
+          : field,
       ),
     }));
   };
@@ -553,7 +551,7 @@ export default function AdminServicesPage() {
               ...field,
               options: field.options?.filter((_, idx) => idx !== optionIndex),
             }
-          : field
+          : field,
       ),
     }));
   };
@@ -574,13 +572,12 @@ export default function AdminServicesPage() {
           fields: formData.fields,
         };
 
-        const response = await servicesApiMethods.createManualService(
-          serviceData
-        );
+        const response =
+          await servicesApiMethods.createManualService(serviceData);
 
         // Update local state with the created service
         const selectedIcon = availableIcons.find(
-          (icon) => icon.name === formData.iconName
+          (icon) => icon.name === formData.iconName,
         );
         const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
 
@@ -614,11 +611,11 @@ export default function AdminServicesPage() {
         });
 
         // Show success message
-        toast.success("Service created successfully!");
+        toast.success("Service créé avec succès");
       } else {
         // For automatic services, keep the old behavior for now
         const selectedIcon = availableIcons.find(
-          (icon) => icon.name === formData.iconName
+          (icon) => icon.name === formData.iconName,
         );
         const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
 
@@ -647,7 +644,7 @@ export default function AdminServicesPage() {
 
         setServices((prev) => [...prev, newService]);
         setIsModalOpen(false);
-        toast.success("Service created successfully!");
+        toast.success("Service créé avec succès");
 
         // Reset form
         setFormData({
@@ -655,6 +652,8 @@ export default function AdminServicesPage() {
           description: "",
           swaggerUrl: "",
           endpointUrl: "",
+          apiKey: "",
+          apiKeyHeader: "",
           fields: [],
           iconName: "Settings",
           status: "active",
@@ -670,13 +669,13 @@ export default function AdminServicesPage() {
   const filteredServices = services.filter(
     (service) =>
       service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase())
+      service.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const filteredIcons = availableIcons.filter(
     (icon) =>
       icon.name.toLowerCase().includes(iconSearchTerm.toLowerCase()) ||
-      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase())
+      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase()),
   );
 
   const getFieldIcon = (type: FormField["type"]) => {
@@ -968,7 +967,8 @@ export default function AdminServicesPage() {
                         }
                       />
                       <p className="text-xs text-muted-foreground mt-1">
-                        Nom de l'en-tête HTTP pour envoyer la clé d'API (ex: Authorization, X-API-Key)
+                        Nom de l'en-tête HTTP pour envoyer la clé d'API (ex:
+                        Authorization, X-API-Key)
                       </p>
                     </div>
                   )}
@@ -985,9 +985,9 @@ export default function AdminServicesPage() {
                         >
                           {React.createElement(
                             availableIcons.find(
-                              (icon) => icon.name === formData.iconName
+                              (icon) => icon.name === formData.iconName,
                             )?.icon || Settings,
-                            { className: "w-6 h-6" }
+                            { className: "w-6 h-6" },
                           )}
                         </div>
                         <div className="flex-1">
@@ -1201,24 +1201,14 @@ export default function AdminServicesPage() {
 
                             {/* Contenu principal du champ */}
                             <div className="flex-1 space-y-3">
-                              {/* Inputs Label et Placeholder */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {/* Input Label */}
+                              <div className="grid grid-cols-1 gap-2">
                                 <Input
-                                  placeholder="Label du champ"
+                                  placeholder="Label du champ (ex: Fichier à traiter)"
                                   value={field.label}
                                   onChange={(e) =>
                                     updateField(field.id, {
                                       label: e.target.value,
-                                    })
-                                  }
-                                  className="text-sm sm:text-base"
-                                />
-                                <Input
-                                  placeholder="Placeholder"
-                                  value={field.placeholder}
-                                  onChange={(e) =>
-                                    updateField(field.id, {
-                                      placeholder: e.target.value,
                                     })
                                   }
                                   className="text-sm sm:text-base"
@@ -1252,7 +1242,7 @@ export default function AdminServicesPage() {
                                             updateSelectOption(
                                               field.id,
                                               idx,
-                                              e.target.value
+                                              e.target.value,
                                             )
                                           }
                                           className="text-sm sm:text-base"
