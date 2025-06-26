@@ -181,6 +181,7 @@ export class SwaggerService {
     const jsonSchema = {
       $schema: 'https://json-schema.org/draft/2020-12/schema',
       $id: `https://api.example.com/schemas/${serviceId}`,
+      host: service.host,
       title: service.info?.title || 'API Service',
       description: service.info?.description || '',
       type: 'object',

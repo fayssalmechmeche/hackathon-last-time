@@ -478,6 +478,7 @@ export default function AdminServicesPage() {
   const [isSwaggerGood, setIsSwaggerGood] = useState(false);
   const [routes, setRoutes] = useState<string[]>([]);
   const [selectedRoute, setSelectedRoute] = useState("");
+  const [host, setHost] = useState("");
   const handleAddService = () => {
     setIsModalOpen(true);
     setModalStep(1);
@@ -629,6 +630,7 @@ export default function AdminServicesPage() {
             gradient: formData.gradient,
             status: formData.status,
             swaggerUrl: formData.swaggerUrl,
+            endpointUrl: "https://" + host + "/" + selectedRoute,
           };
 
           await servicesApiMethods.createAutomatedService(newServiceData);
@@ -675,6 +677,8 @@ export default function AdminServicesPage() {
       const response = await servicesApiMethods.analyzeSwagger(
         formData.swaggerUrl
       );
+      setHost(response.data.host);
+
       // check if the response has a routes property with a properties object
       console.log(response.data.properties.routes.properties);
       if (

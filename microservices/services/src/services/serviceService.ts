@@ -67,6 +67,7 @@ export async function handleCreateAutomatedService(
     status: serviceData.status,
     type: "automatic" as const,
     swaggerUrl: serviceData.swaggerUrl,
+    endpointUrl: serviceData.endpointUrl,
     jsonSchema,
     createdBy: userId,
   };

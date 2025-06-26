@@ -27,6 +27,7 @@ export const CreateAutomatedServiceSchema = z.object({
   gradient: z.string().min(1, "Gradient is required"),
   status: z.enum(["active", "inactive"]),
   swaggerUrl: z.string().url("Invalid swagger URL"),
+  endpointUrl: z.string().url("Invalid endpoint URL"),
 });
 
 export const UpdateServiceSchema = z.object({

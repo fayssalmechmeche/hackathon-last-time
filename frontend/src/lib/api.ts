@@ -44,6 +44,7 @@ export interface CreateAutomatedServiceRequest {
   gradient: string;
   status: "active" | "inactive";
   swaggerUrl: string;
+  endpointUrl: string;
 }
 
 export interface UpdateServiceRequest {
