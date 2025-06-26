@@ -631,10 +631,24 @@ export default function AdminServicesPage() {
             </div>
             <Button
               onClick={handleAddService}
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+              className="
+    bg-gradient-to-r from-purple-500 to-pink-500 
+    hover:from-purple-600 hover:to-pink-600 
+    text-white
+    w-full sm:w-auto
+    px-3 sm:px-4 lg:px-6
+    py-2 sm:py-2.5
+    text-sm sm:text-base
+    font-medium
+    rounded-lg
+    transition-all duration-200
+    flex items-center justify-center
+    gap-1 sm:gap-2
+    min-h-[40px] sm:min-h-[44px]
+  "
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter un service
+              <Plus className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="truncate">Ajouter un service</span>
             </Button>
           </div>
 
@@ -974,56 +988,66 @@ export default function AdminServicesPage() {
                 )}
 
                 {serviceType === "manual" && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold">
+                  <div className="space-y-4 sm:space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+                      <h3 className="text-lg sm:text-xl font-semibold">
                         Champs du formulaire
                       </h3>
-                      <div className="flex gap-2">
+
+                      {/* Boutons d'ajout de champs - responsive */}
+                      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:justify-end">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => addField("file")}
+                          className="px-3 sm:px-3 text-xs sm:text-sm"
                         >
-                          <Upload className="w-4 h-4 mr-1" />
-                          Fichier
+                          <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                          <span>Fichier</span>
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => addField("text")}
+                          className="px-3 sm:px-3 text-xs sm:text-sm"
                         >
-                          <Type className="w-4 h-4 mr-1" />
-                          Texte
+                          <Type className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                          <span>Texte</span>
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => addField("number")}
+                          className="px-3 sm:px-3 text-xs sm:text-sm"
                         >
-                          <Hash className="w-4 h-4 mr-1" />
-                          Nombre
+                          <Hash className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                          <span>Nombre</span>
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => addField("select")}
+                          className="px-3 sm:px-3 text-xs sm:text-sm"
                         >
-                          <ToggleLeft className="w-4 h-4 mr-1" />
-                          Liste
+                          <ToggleLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
+                          <span>Liste</span>
                         </Button>
                       </div>
                     </div>
 
-                    <div className="space-y-4 max-h-60 overflow-y-auto">
+                    <div className="space-y-3 sm:space-y-4 max-h-60 sm:max-h-80 overflow-y-auto">
                       {formData.fields.map((field) => (
-                        <Card key={field.id} className="p-4">
-                          <div className="flex items-start gap-4">
-                            <div className="flex items-center justify-center w-8 h-8 rounded bg-muted">
+                        <Card key={field.id} className="p-3 sm:p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                            {/* Icône du champ */}
+                            <div className="flex items-center justify-center w-8 h-8 rounded bg-muted flex-shrink-0 self-start sm:self-auto">
                               {getFieldIcon(field.type)}
                             </div>
+
+                            {/* Contenu principal du champ */}
                             <div className="flex-1 space-y-3">
-                              <div className="grid grid-cols-2 gap-2">
+                              {/* Inputs Label et Placeholder */}
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <Input
                                   placeholder="Label du champ"
                                   value={field.label}
@@ -1032,6 +1056,7 @@ export default function AdminServicesPage() {
                                       label: e.target.value,
                                     })
                                   }
+                                  className="text-sm sm:text-base"
                                 />
                                 <Input
                                   placeholder="Placeholder"
@@ -1041,50 +1066,59 @@ export default function AdminServicesPage() {
                                       placeholder: e.target.value,
                                     })
                                   }
+                                  className="text-sm sm:text-base"
                                 />
                               </div>
 
+                              {/* Options pour les champs select */}
                               {field.type === "select" && (
                                 <div className="space-y-2">
                                   <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium">
+                                    <label className="text-xs sm:text-sm font-medium">
                                       Options
                                     </label>
                                     <Button
                                       variant="outline"
                                       size="sm"
                                       onClick={() => addSelectOption(field.id)}
+                                      className="h-7 sm:h-8 px-2 sm:px-3"
                                     >
                                       <Plus className="w-3 h-3" />
                                     </Button>
                                   </div>
-                                  {field.options?.map((option, idx) => (
-                                    <div key={idx} className="flex gap-2">
-                                      <Input
-                                        placeholder={`Option ${idx + 1}`}
-                                        value={option}
-                                        onChange={(e) =>
-                                          updateSelectOption(
-                                            field.id,
-                                            idx,
-                                            e.target.value
-                                          )
-                                        }
-                                      />
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() =>
-                                          removeSelectOption(field.id, idx)
-                                        }
-                                      >
-                                        <X className="w-3 h-3" />
-                                      </Button>
-                                    </div>
-                                  ))}
+
+                                  <div className="space-y-2">
+                                    {field.options?.map((option, idx) => (
+                                      <div key={idx} className="flex gap-2">
+                                        <Input
+                                          placeholder={`Option ${idx + 1}`}
+                                          value={option}
+                                          onChange={(e) =>
+                                            updateSelectOption(
+                                              field.id,
+                                              idx,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="text-sm sm:text-base"
+                                        />
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() =>
+                                            removeSelectOption(field.id, idx)
+                                          }
+                                          className="h-9 sm:h-10 w-9 sm:w-10 p-0 flex-shrink-0"
+                                        >
+                                          <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                                        </Button>
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               )}
 
+                              {/* Checkbox "Champ obligatoire" */}
                               <div className="flex items-center gap-2">
                                 <input
                                   type="checkbox"
@@ -1095,31 +1129,37 @@ export default function AdminServicesPage() {
                                       required: e.target.checked,
                                     })
                                   }
-                                  className="rounded"
+                                  className="rounded w-4 h-4"
                                 />
                                 <label
                                   htmlFor={`required-${field.id}`}
-                                  className="text-sm"
+                                  className="text-xs sm:text-sm select-none"
                                 >
                                   Champ obligatoire
                                 </label>
                               </div>
                             </div>
+
+                            {/* Bouton de suppression */}
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => removeField(field.id)}
+                              className="h-8 w-8 sm:h-9 sm:w-9 p-0 flex-shrink-0 self-start"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                           </div>
                         </Card>
                       ))}
 
+                      {/* Message vide */}
                       {formData.fields.length === 0 && (
-                        <div className="text-center py-8 text-muted-foreground">
-                          Aucun champ ajouté. Utilisez les boutons ci-dessus
-                          pour ajouter des champs.
+                        <div className="text-center py-6 sm:py-8 text-muted-foreground px-4">
+                          <p className="text-sm sm:text-base">
+                            Aucun champ ajouté. Utilisez les boutons ci-dessus
+                            pour ajouter des champs.
+                          </p>
                         </div>
                       )}
                     </div>
