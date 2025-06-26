@@ -419,10 +419,10 @@ export default function AdminServicesPage() {
 
   // Fonction pour convertir ServiceResponse en Service avec icône
   const convertServiceResponseToService = (
-    serviceResponse: ServiceResponse
+    serviceResponse: ServiceResponse,
   ): Service => {
     const selectedIcon = availableIcons.find(
-      (icon) => icon.name === serviceResponse.iconName
+      (icon) => icon.name === serviceResponse.iconName,
     );
     const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
 
@@ -439,7 +439,7 @@ export default function AdminServicesPage() {
         setLoading(true);
         const response = await servicesApiMethods.getActiveServices();
         const servicesWithIcons = response.data.map(
-          convertServiceResponseToService
+          convertServiceResponseToService,
         );
         setServices(servicesWithIcons);
       } catch (error) {
@@ -456,7 +456,7 @@ export default function AdminServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalStep, setModalStep] = useState(1);
   const [serviceType, setServiceType] = useState<"automatic" | "manual" | "">(
-    ""
+    "",
   );
   const [formData, setFormData] = useState<FormData>({
     title: "",
@@ -514,7 +514,7 @@ export default function AdminServicesPage() {
     setFormData((prev) => ({
       ...prev,
       fields: prev.fields.map((field) =>
-        field.id === fieldId ? { ...field, ...updates } : field
+        field.id === fieldId ? { ...field, ...updates } : field,
       ),
     }));
   };
@@ -532,7 +532,7 @@ export default function AdminServicesPage() {
       fields: prev.fields.map((field) =>
         field.id === fieldId
           ? { ...field, options: [...(field.options || []), ""] }
-          : field
+          : field,
       ),
     }));
   };
@@ -540,7 +540,7 @@ export default function AdminServicesPage() {
   const updateSelectOption = (
     fieldId: number,
     optionIndex: number,
-    value: string
+    value: string,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -549,10 +549,10 @@ export default function AdminServicesPage() {
           ? {
               ...field,
               options: field.options?.map((opt, idx) =>
-                idx === optionIndex ? value : opt
+                idx === optionIndex ? value : opt,
               ),
             }
-          : field
+          : field,
       ),
     }));
   };
@@ -566,7 +566,7 @@ export default function AdminServicesPage() {
               ...field,
               options: field.options?.filter((_, idx) => idx !== optionIndex),
             }
-          : field
+          : field,
       ),
     }));
   };
@@ -592,7 +592,7 @@ export default function AdminServicesPage() {
         // Recharger tous les services depuis l'API
         const response = await servicesApiMethods.getActiveServices();
         const servicesWithIcons = response.data.map(
-          convertServiceResponseToService
+          convertServiceResponseToService,
         );
         setServices(servicesWithIcons);
 
@@ -630,7 +630,7 @@ export default function AdminServicesPage() {
         // Recharger tous les services depuis l'API
         const response = await servicesApiMethods.getActiveServices();
         const servicesWithIcons = response.data.map(
-          convertServiceResponseToService
+          convertServiceResponseToService,
         );
         setServices(servicesWithIcons);
 
@@ -660,13 +660,13 @@ export default function AdminServicesPage() {
   const filteredServices = services.filter(
     (service) =>
       service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      service.description.toLowerCase().includes(searchTerm.toLowerCase())
+      service.description.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const filteredIcons = availableIcons.filter(
     (icon) =>
       icon.name.toLowerCase().includes(iconSearchTerm.toLowerCase()) ||
-      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase())
+      icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase()),
   );
 
   const getFieldIcon = (type: FormField["type"]) => {
@@ -691,7 +691,7 @@ export default function AdminServicesPage() {
       <div className="min-h-[calc(100vh-4rem)] bg-background text-foreground">
         {/* Header */}
         <section className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-8 gap-5">
             <div>
               <h1 className="text-3xl font-bold mb-2">Services</h1>
               <p className="text-muted-foreground">
@@ -997,9 +997,9 @@ export default function AdminServicesPage() {
                         >
                           {React.createElement(
                             availableIcons.find(
-                              (icon) => icon.name === formData.iconName
+                              (icon) => icon.name === formData.iconName,
                             )?.icon || Settings,
-                            { className: "w-6 h-6" }
+                            { className: "w-6 h-6" },
                           )}
                         </div>
                         <div className="flex-1">
@@ -1254,7 +1254,7 @@ export default function AdminServicesPage() {
                                             updateSelectOption(
                                               field.id,
                                               idx,
-                                              e.target.value
+                                              e.target.value,
                                             )
                                           }
                                           className="text-sm sm:text-base"
