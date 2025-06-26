@@ -7,6 +7,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
 import ListServices from "./pages/ListServices";
+import ServiceFormPage from "./pages/ServiceFormPage";
 
 const router = createBrowserRouter([
   {
@@ -35,11 +36,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/services",
-    element: (
-      <ProtectedRoute>
-        <ServicesPage />
-      </ProtectedRoute>
-    ),
+    element: <ServicesPage />,
   },
   {
     path: "/services/list",
@@ -48,6 +45,10 @@ const router = createBrowserRouter([
         <ListServices />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/service/:serviceId",
+    element: <ServiceFormPage />,
   },
 ]);
 
