@@ -1,0 +1,83 @@
+import { v4 as uuidv4 } from "uuid";
+import type { ServiceDocument } from "../db/schema.js";
+import {
+  createService,
+  deleteService,
+  findAllActiveServices,
+  findServiceById,
+  findServicesByUserId,
+  updateService,
+} from "../models/service.js";
+import type { CreateManualServiceRequest, UpdateServiceRequest } from "../utils/validation.js";
+import { generateJSONSchemaFromFields } from "./schemaGenerator.js";
+
+export async function handleCreateManualService(
+  userId: string,
+  serviceData: CreateManualServiceRequest
+): Promise<ServiceDocument> {
+  // Generate JSON Schema from the provided fields
+  const jsonSchema = generateJSONSchemaFromFields(
+    serviceData.title,
+    serviceData.description,
+    serviceData.fields
+  );
+
+  // Create the service document
+  const serviceDocument = {
+    _id: uuidv4(),
+    title: serviceData.title,
+    description: serviceData.description,
+    iconName: serviceData.iconName,
+    gradient: serviceData.gradient,
+    status: serviceData.status,
+    type: "manual" as const,
+    jsonSchema,
+    createdBy: userId,
+  };
+
+  return await createService(serviceDocument);
+}
+
+export async function handleGetService(serviceId: string): Promise<ServiceDocument | null> {
+  return await findServiceById(serviceId);
+}
+
+export async function handleGetUserServices(userId: string): Promise<ServiceDocument[]> {
+  return await findServicesByUserId(userId);
+}
+
+export async function handleGetAllActiveServices(): Promise<ServiceDocument[]> {
+  return await findAllActiveServices();
+}
+
+export async function handleUpdateService(
+  serviceId: string,
+  userId: string,
+  updates: UpdateServiceRequest
+): Promise<ServiceDocument | null> {
+  // First check if the service exists and belongs to the user
+  const existingService = await findServiceById(serviceId);
+  if (!existingService) {
+    throw new Error("service_not_found");
+  }
+
+  if (existingService.createdBy !== userId) {
+    throw new Error("unauthorized_access");
+  }
+
+  return await updateService(serviceId, updates);
+}
+
+export async function handleDeleteService(serviceId: string, userId: string): Promise<boolean> {
+  // First check if the service exists and belongs to the user
+  const existingService = await findServiceById(serviceId);
+  if (!existingService) {
+    throw new Error("service_not_found");
+  }
+
+  if (existingService.createdBy !== userId) {
+    throw new Error("unauthorized_access");
+  }
+
+  return await deleteService(serviceId);
+}

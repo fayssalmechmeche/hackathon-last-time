@@ -1,103 +1,108 @@
-import React, { useState } from "react";
 import {
-  FileText,
-  Image,
-  Search,
-  Video,
-  Edit,
-  Trash2,
-  ExternalLink,
-  Save,
-  X,
-  Upload,
-  Hash,
-  Type,
-  Calendar,
-  ToggleLeft,
-  Settings,
-  Link,
+  AlertCircle,
+  Archive,
+  Award,
+  Battery,
+  Bell,
+  Bookmark,
+  BookOpen,
   Bot,
-  Code,
-  Database,
+  Briefcase,
+  Brush,
+  Bug,
+  Cake,
+  Calculator,
+  Calendar,
+  Camera,
+  Car,
+  CheckCircle,
+  Clock,
   Cloud,
-  Zap,
+  Code,
+  Coffee,
+  Compass,
+  Copy,
+  Cpu,
+  Database,
+  Download,
+  Edit,
+  ExternalLink,
+  Eye,
+  FileText,
+  Fish,
+  Flag,
+  Flower,
+  Folder,
+  Gamepad2,
+  Gift,
   Globe,
+  Hash,
+  Headphones,
+  Heart,
+  HelpCircle,
+  Home,
+  Image,
+  Info,
+  Key,
+  Lightbulb,
+  Link,
   Lock,
   Mail,
-  Phone,
-  Music,
-  Camera,
-  Palette,
-  Monitor,
-  Smartphone,
-  Headphones,
-  Gamepad2,
-  Car,
-  Plane,
-  Home,
-  ShoppingCart,
-  BookOpen,
-  Briefcase,
-  Users,
-  MessageSquare,
-  Bell,
-  Clock,
-  MapPin,
-  Wifi,
-  Battery,
-  Volume2,
-  Sun,
-  Moon,
-  Thermometer,
-  Umbrella,
-  Snowflake,
-  Flower,
-  TreePine,
-  Mountain,
-  Waves,
-  Fish,
-  Bug,
-  Lightbulb,
-  Wrench,
-  Scissors,
-  Brush,
-  Pen,
-  Calculator,
-  Ruler,
-  Target,
-  Award,
-  Trophy,
-  Gift,
-  Cake,
-  Pizza,
-  Truck,
-  Ship,
-  Rocket,
-  Satellite,
-  Compass,
   Map,
-  Flag,
-  Key,
-  Shield,
-  Eye,
-  Download,
-  Share,
-  Copy,
-  Archive,
-  Folder,
-  Tag,
-  Bookmark,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Info,
-  HelpCircle,
-  Cpu,
-  Heart,
-  Star,
-  Coffee,
+  MapPin,
+  MessageSquare,
+  Monitor,
+  Moon,
+  Mountain,
+  Music,
+  Palette,
+  Pen,
+  Phone,
+  Pizza,
+  Plane,
   Plus,
+  Rocket,
+  Ruler,
+  Satellite,
+  Save,
+  Scissors,
+  Search,
+  Settings,
+  Share,
+  Shield,
+  Ship,
+  ShoppingCart,
+  Smartphone,
+  Snowflake,
+  Star,
+  Sun,
+  Tag,
+  Target,
+  Thermometer,
+  ToggleLeft,
+  Trash2,
+  TreePine,
+  Trophy,
+  Truck,
+  Type,
+  Umbrella,
+  Upload,
+  Users,
+  Video,
+  Volume2,
+  Waves,
+  Wifi,
+  Wrench,
+  X,
+  XCircle,
+  Zap,
 } from "lucide-react";
+import React, { useState } from "react";
+import { toast } from "sonner";
+import {
+  servicesApiMethods,
+  type CreateManualServiceRequest,
+} from "../lib/api";
 
 interface Service {
   id: number;
@@ -563,28 +568,83 @@ export default function AdminServicesPage() {
     }));
   };
 
-  const handleSaveService = () => {
-    const selectedIcon = availableIcons.find(
-      (icon) => icon.name === formData.iconName
-    );
-    const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
+  const handleSaveService = async () => {
+    try {
+      // Only handle manual services for now (as per requirements)
+      if (serviceType === "manual") {
+        const serviceData: CreateManualServiceRequest = {
+          title: formData.title,
+          description: formData.description,
+          iconName: formData.iconName,
+          gradient: formData.gradient,
+          status: formData.status,
+          fields: formData.fields,
+        };
 
-    const newService: Service = {
-      id: Date.now(),
-      title: formData.title,
-      description: formData.description,
-      type: serviceType as "automatic" | "manual",
-      status: formData.status,
-      gradient: formData.gradient,
-      icon: <IconComponent className="w-8 h-8" />,
-      iconName: formData.iconName,
-      ...(serviceType === "automatic"
-        ? { swaggerUrl: formData.swaggerUrl }
-        : { fields: formData.fields }),
-    };
+        const response = await servicesApiMethods.createManualService(
+          serviceData
+        );
 
-    setServices((prev) => [...prev, newService]);
-    setIsModalOpen(false);
+        // Update local state with the created service
+        const selectedIcon = availableIcons.find(
+          (icon) => icon.name === formData.iconName
+        );
+        const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
+
+        const newService: Service = {
+          id: response.data._id, // Use the UUID from the database
+          title: formData.title,
+          description: formData.description,
+          type: "manual",
+          status: formData.status,
+          gradient: formData.gradient,
+          icon: <IconComponent className="w-8 h-8" />,
+          iconName: formData.iconName,
+          fields: formData.fields,
+        };
+
+        setServices((prev) => [...prev, newService]);
+        setIsModalOpen(false);
+
+        // Reset form
+        setFormData({
+          title: "",
+          description: "",
+          swaggerUrl: "",
+          fields: [],
+          iconName: "Settings",
+          status: "active",
+          gradient: "from-purple-500 to-pink-500",
+        });
+
+        // Show success message
+        toast.success("Service created successfully!");
+      } else {
+        // For automatic services, keep the old behavior for now
+        const selectedIcon = availableIcons.find(
+          (icon) => icon.name === formData.iconName
+        );
+        const IconComponent = selectedIcon ? selectedIcon.icon : Settings;
+
+        const newService: Service = {
+          id: Date.now(),
+          title: formData.title,
+          description: formData.description,
+          type: "automatic",
+          status: formData.status,
+          gradient: formData.gradient,
+          icon: <IconComponent className="w-8 h-8" />,
+          iconName: formData.iconName,
+          swaggerUrl: formData.swaggerUrl,
+        };
+
+        setServices((prev) => [...prev, newService]);
+        setIsModalOpen(false);
+      }
+    } catch (error) {
+      console.error("Error creating service:", error);
+      toast.error("Failed to create service. Please try again.");
+    }
   };
 
   const filteredServices = services.filter(
