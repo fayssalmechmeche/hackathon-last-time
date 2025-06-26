@@ -695,8 +695,9 @@ export default function AdminServicesPage() {
             <div>
               <h1 className="text-3xl font-bold mb-2">Services</h1>
               <p className="text-muted-foreground">
-                Gérez les services Nexolve - Ajoutez, modifiez ou supprimez des
-                services
+                Explorez notre écosystème complet d'outils numériques. Que vous
+                ayez besoin de convertir, compresser, éditer ou créer, trouvez
+                la solution parfaite.
               </p>
             </div>
             <Button
