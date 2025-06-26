@@ -6,13 +6,13 @@ SERVICES = $(shell find $(MICROSERVICES_DIR) -maxdepth 1 -type d -not -path $(MI
 
 # Docker Compose pour auth
 dcu:
-	docker compose -f microservices/auth/compose.yaml up -d
+	docker compose up -d
 
 dcd:
-	docker compose -f microservices/auth/compose.yaml down
+	docker compose down
 
 dcdv:
-	docker compose -f microservices/auth/compose.yaml down -v
+	docker compose down -v
 
 # Commandes pour démarrer tous les microservices
 start-all:

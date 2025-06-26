@@ -1,7 +1,7 @@
 services:
-  db-auth:
+  postgres:
     image: postgres:17
-    container_name: db-auth
+    container_name: postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -9,17 +9,17 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db-auth-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
       - ./database.sql:/docker-entrypoint-initdb.d/init.sql
 
-  adminer-auth:
+  adminer:
     image: adminer
-    container_name: adminer-auth
+    container_name: adminer
     ports:
       - "8080:8080"
     environment:
-      ADMINER_DEFAULT_SERVER: db-auth
+      ADMINER_DEFAULT_SERVER: postgres
 
 volumes:
-  db-auth-data:
+  postgres-data:
     driver: local
