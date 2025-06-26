@@ -134,6 +134,8 @@ interface FormData {
   description: string;
   swaggerUrl: string;
   endpointUrl: string;
+  apiKey: string;
+  apiKeyHeader: string;
   fields: FormField[];
   iconName: string;
   status: "active" | "inactive";
@@ -447,6 +449,8 @@ export default function AdminServicesPage() {
     description: "",
     swaggerUrl: "",
     endpointUrl: "",
+    apiKey: "",
+    apiKeyHeader: "",
     fields: [],
     iconName: "Settings",
     status: "active",
@@ -464,6 +468,8 @@ export default function AdminServicesPage() {
       description: "",
       swaggerUrl: "",
       endpointUrl: "",
+      apiKey: "",
+      apiKeyHeader: "",
       fields: [],
       iconName: "Settings",
       status: "active",
@@ -563,6 +569,8 @@ export default function AdminServicesPage() {
           gradient: formData.gradient,
           status: formData.status,
           endpointUrl: formData.endpointUrl,
+          apiKey: formData.apiKey,
+          apiKeyHeader: formData.apiKeyHeader,
           fields: formData.fields,
         };
 
@@ -597,6 +605,8 @@ export default function AdminServicesPage() {
           description: "",
           swaggerUrl: "",
           endpointUrl: "",
+          apiKey: "",
+          apiKeyHeader: "",
           fields: [],
           iconName: "Settings",
           status: "active",
@@ -900,7 +910,7 @@ export default function AdminServicesPage() {
                   {serviceType === "manual" && (
                     <div>
                       <label className="block text-sm font-medium mb-2">
-                        Endpoint URL
+                        URL de l'endpoint
                       </label>
                       <Input
                         placeholder="https://api.example.com/llm-endpoint"
@@ -914,6 +924,51 @@ export default function AdminServicesPage() {
                       />
                       <p className="text-xs text-muted-foreground mt-1">
                         URL de l'API LLM où envoyer les données du formulaire
+                      </p>
+                    </div>
+                  )}
+
+                  {/* API Key - only for manual services */}
+                  {serviceType === "manual" && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        Clé API
+                      </label>
+                      <Input
+                        type="password"
+                        placeholder="sk-..."
+                        value={formData.apiKey}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            apiKey: e.target.value,
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Clé d'API pour l'authentification avec le service LLM
+                      </p>
+                    </div>
+                  )}
+
+                  {/* API Key Header - only for manual services */}
+                  {serviceType === "manual" && (
+                    <div>
+                      <label className="block text-sm font-medium mb-2">
+                        En-tête de la clé API
+                      </label>
+                      <Input
+                        placeholder="Authorization"
+                        value={formData.apiKeyHeader}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            apiKeyHeader: e.target.value,
+                          }))
+                        }
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Nom de l'en-tête HTTP pour envoyer la clé d'API (ex: Authorization, X-API-Key)
                       </p>
                     </div>
                   )}

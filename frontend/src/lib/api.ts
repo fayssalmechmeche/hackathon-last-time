@@ -26,6 +26,8 @@ export interface CreateManualServiceRequest {
   gradient: string;
   status: "active" | "inactive";
   endpointUrl: string;
+  apiKey: string;
+  apiKeyHeader: string;
   fields: Array<{
     id: number;
     type: "file" | "text" | "number" | "date" | "select";
@@ -52,7 +54,27 @@ export interface UpdateServiceRequest {
   gradient?: string;
   status?: "active" | "inactive";
   endpointUrl?: string;
+  apiKey?: string;
+  apiKeyHeader?: string;
   jsonSchema?: object;
+}
+
+export interface ServiceResponse {
+  _id: string;
+  title: string;
+  description: string;
+  iconName: string;
+  gradient: string;
+  status: "active" | "inactive";
+  type: "automatic" | "manual";
+  swaggerUrl?: string;
+  endpointUrl?: string;
+  apiKey?: string;
+  apiKeyHeader?: string;
+  jsonSchema?: object;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: string;
 }
 
 // Services API endpoints

@@ -3,10 +3,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ServicesPage from "./pages/DisplayServices";
 import EditProfilePage from "./pages/EditProfilePage";
 import HomePage from "./pages/HomePage";
+import ListServices from "./pages/ListServices";
 import LoginPage from "./pages/LoginPage";
+import ManageServicesPage from "./pages/ManageServicesPage";
 import RegisterPage from "./pages/RegisterPage";
 import RegisterProfilePage from "./pages/RegisterProfilePage";
-import ListServices from "./pages/ListServices";
+import ServiceFormPage from "./pages/ServiceFormPage";
 
 const router = createBrowserRouter([
   {
@@ -35,11 +37,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/services",
-    element: (
-      <ProtectedRoute>
-        <ServicesPage />
-      </ProtectedRoute>
-    ),
+    element: <ServicesPage />,
   },
   {
     path: "/services/list",
@@ -48,6 +46,18 @@ const router = createBrowserRouter([
         <ListServices />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/services/manage",
+    element: (
+      <ProtectedRoute>
+        <ManageServicesPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/service/:serviceId",
+    element: <ServiceFormPage />,
   },
 ]);
 
