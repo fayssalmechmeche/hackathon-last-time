@@ -25,7 +25,6 @@ import {
   Cpu,
   Database,
   Download,
-  Edit,
   ExternalLink,
   Eye,
   FileText,
@@ -80,7 +79,6 @@ import {
   Target,
   Thermometer,
   ToggleLeft,
-  Trash2,
   TreePine,
   Trophy,
   Truck,
@@ -96,10 +94,12 @@ import {
   X,
   XCircle,
   Zap,
+  ArrowRight,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 import Layout from "../components/Layout";
+import { useNavigate } from "react-router-dom";
 import {
   servicesApiMethods,
   type CreateAutomatedServiceRequest,
@@ -408,8 +408,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
 };
 
 export default function AdminServicesPage() {
+  const navigate = useNavigate();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Fonction pour gérer la sélection d'un service
+  const handleServiceClick = (serviceId: string) => {
+    navigate(`/services/${serviceId}`);
+  };
 
   // Fonction pour convertir ServiceResponse en Service avec icône
   const convertServiceResponseToService = (
@@ -687,10 +693,10 @@ export default function AdminServicesPage() {
         <section className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Mes services</h1>
+              <h1 className="text-3xl font-bold mb-2">Services</h1>
               <p className="text-muted-foreground">
-                Administrez vos services Nexolve - Ajoutez, modifiez ou
-                supprimez des services
+                Gérez les services Nexolve - Ajoutez, modifiez ou supprimez des
+                services
               </p>
             </div>
             <Button
@@ -743,16 +749,15 @@ export default function AdminServicesPage() {
                   <div className="text-muted-foreground mb-4">
                     <Settings className="w-16 h-16 mx-auto mb-4 opacity-50" />
                     <p className="text-lg">Aucun service disponible</p>
-                    <p className="text-sm">
-                      Commencez par ajouter votre premier service
-                    </p>
+                    <p className="text-sm">Commencez par ajouter un service</p>
                   </div>
                 </div>
               ) : (
                 filteredServices.map((service) => (
                   <Card
                     key={service._id}
-                    className="bg-card border-border hover:bg-accent/50 transition-all duration-300 group"
+                    className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer"
+                    onClick={() => handleServiceClick(service._id)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -761,24 +766,17 @@ export default function AdminServicesPage() {
                         >
                           {service.icon}
                         </div>
-                        <div className="flex gap-2">
-                          <Button variant="ghost" size="sm">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
                       </div>
 
-                      <h3 className="font-semibold text-lg mb-2 text-card-foreground">
+                      <h3 className="text-white font-semibold text-lg mb-2 flex items-center justify-between">
                         {service.title}
+                        <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </h3>
-                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                      <p className="text-gray-400 text-sm mb-4 line-clamp-2">
                         {service.description}
                       </p>
 
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <span
                             className={`w-2 h-2 rounded-full ${
@@ -787,11 +785,11 @@ export default function AdminServicesPage() {
                                 : "bg-red-500"
                             }`}
                           ></span>
-                          <span className="text-xs text-muted-foreground capitalize">
+                          <span className="text-xs text-gray-400 capitalize">
                             {service.status}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1 text-xs text-gray-400">
                           {service.type === "automatic" ? (
                             <Bot className="w-3 h-3" />
                           ) : (
@@ -800,6 +798,16 @@ export default function AdminServicesPage() {
                           {service.type}
                         </div>
                       </div>
+
+                      <button
+                        className="w-full bg-gray-700 hover:bg-gray-600 text-white border-0 h-9 rounded-md px-3 text-sm font-medium transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleServiceClick(service._id);
+                        }}
+                      >
+                        Sélectionner ce service
+                      </button>
                     </CardContent>
                   </Card>
                 ))
@@ -822,7 +830,7 @@ export default function AdminServicesPage() {
             {modalStep === 1 && (
               <div className="space-y-6">
                 <p className="text-muted-foreground mb-6">
-                  Choisissez le type de service que vous souhaitez ajouter :
+                  Choisissez le type de service à ajouter :
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -860,11 +868,11 @@ export default function AdminServicesPage() {
                         Configuration Manuelle
                       </h3>
                       <p className="text-muted-foreground text-sm mb-4">
-                        Créez manuellement les champs du formulaire selon vos
+                        Créez manuellement les champs du formulaire selon les
                         besoins
                       </p>
                       <div className="flex items-center justify-center text-xs text-muted-foreground">
-                        <Edit className="w-3 h-3 mr-1" />
+                        <Settings className="w-3 h-3 mr-1" />
                         Personnalisé
                       </div>
                     </CardContent>
@@ -897,7 +905,7 @@ export default function AdminServicesPage() {
                       Description
                     </label>
                     <Textarea
-                      placeholder="Décrivez brièvement ce que fait votre service..."
+                      placeholder="Décrivez brièvement ce que fait le service..."
                       value={formData.description}
                       onChange={(e) =>
                         setFormData((prev) => ({
@@ -1295,7 +1303,7 @@ export default function AdminServicesPage() {
                               onClick={() => removeField(field.id)}
                               className="h-8 w-8 sm:h-9 sm:w-9 p-0 flex-shrink-0 self-start"
                             >
-                              <Trash2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <X className="w-3 h-3 sm:w-4 sm:h-4" />
                             </Button>
                           </div>
                         </Card>
