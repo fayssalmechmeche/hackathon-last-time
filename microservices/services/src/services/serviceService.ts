@@ -23,7 +23,6 @@ export async function handleCreateManualService(
   // Generate JSON Schema from the provided fields
   const jsonSchema = generateJSONSchemaFromFields(
     serviceData.title,
-    serviceData.description,
     serviceData.fields
   );
 

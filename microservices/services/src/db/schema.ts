@@ -32,5 +32,4 @@ export interface GeneratedJSONSchema {
   properties: Record<string, any>;
   required: string[];
   title: string;
-  description: string;
 }

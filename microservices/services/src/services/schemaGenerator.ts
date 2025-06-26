@@ -2,7 +2,6 @@ import type { FormField, GeneratedJSONSchema } from "../db/schema.js";
 
 export function generateJSONSchemaFromFields(
   title: string,
-  description: string,
   fields: FormField[]
 ): GeneratedJSONSchema {
   const properties: Record<string, any> = {};
@@ -67,7 +66,6 @@ export function generateJSONSchemaFromFields(
   return {
     type: "object",
     title,
-    description,
     properties,
     required,
   };
