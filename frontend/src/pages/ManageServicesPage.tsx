@@ -5,7 +5,9 @@ import {
   Edit,
   ExternalLink,
   Hash,
+  Loader2,
   Plus,
+  RefreshCw,
   Save,
   Search,
   Settings,
@@ -33,7 +35,7 @@ interface Service {
   status: "active" | "inactive";
   type: "automatic" | "manual";
   swaggerUrl?: string;
-  endpointUrl?: string;
+  baseUrl?: string;
   apiKey?: string;
   apiKeyHeader?: string;
   modelId?: string;
@@ -57,7 +59,7 @@ interface EditFormData {
   iconName: string;
   gradient: string;
   status: "active" | "inactive";
-  endpointUrl: string;
+  baseUrl: string;
   apiKey: string;
   apiKeyHeader: string;
   modelId: string;
@@ -152,7 +154,7 @@ export default function ManageServicesPage() {
     iconName: "Settings",
     gradient: "from-purple-500 to-pink-500",
     status: "active",
-    endpointUrl: "",
+    baseUrl: "",
     apiKey: "",
     apiKeyHeader: "",
     modelId: "",
@@ -160,6 +162,8 @@ export default function ManageServicesPage() {
     fields: [],
   });
   const [iconSearchTerm, setIconSearchTerm] = useState("");
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isFetchingModels, setIsFetchingModels] = useState(false);
   const [deleteConfirmService, setDeleteConfirmService] =
     useState<Service | null>(null);
 
@@ -309,13 +313,45 @@ export default function ManageServicesPage() {
       iconName: service.iconName,
       gradient: service.gradient,
       status: service.status,
-      endpointUrl: service.endpointUrl || "",
+      baseUrl: service.baseUrl || "",
       apiKey: service.apiKey || "",
       apiKeyHeader: service.apiKeyHeader || "",
       modelId: service.modelId || "",
       swaggerUrl: service.swaggerUrl || "",
       fields,
     });
+  };
+
+  // Fetch available models from OpenAI-compatible API
+  const fetchModels = async () => {
+    if (!editFormData.baseUrl.trim()) {
+      toast.error("Veuillez saisir l'URL de base");
+      return;
+    }
+
+    setIsFetchingModels(true);
+    try {
+      const models = await servicesApiMethods.fetchModels(
+        editFormData.baseUrl,
+        editFormData.apiKey || undefined,
+        editFormData.apiKeyHeader || undefined
+      );
+      
+      const modelIds = models.map(model => model.id);
+      setAvailableModels(modelIds);
+      
+      if (modelIds.length === 0) {
+        toast.error("Aucun modèle trouvé");
+      } else {
+        toast.success(`${modelIds.length} modèle(s) trouvé(s)`);
+      }
+    } catch (error) {
+      console.error("Error fetching models:", error);
+      toast.error("Impossible de récupérer les modèles. Vérifiez que l'API est compatible OpenAI.");
+      setAvailableModels([]);
+    } finally {
+      setIsFetchingModels(false);
+    }
   };
 
   // Handle update service
@@ -334,7 +370,7 @@ export default function ManageServicesPage() {
 
       // Add type-specific fields
       if (editingService.type === "manual") {
-        updateData.endpointUrl = editFormData.endpointUrl;
+        updateData.baseUrl = editFormData.baseUrl;
         updateData.apiKey = editFormData.apiKey;
         updateData.apiKeyHeader = editFormData.apiKeyHeader;
         // For manual services, we'd need to regenerate the JSON schema from fields
@@ -584,26 +620,6 @@ export default function ManageServicesPage() {
                   }
                 />
               </div>
-
-              {/* Model ID */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  ID du modèle d'IA
-                </label>
-                <Input
-                  placeholder="Ex: gpt-4, claude-3-sonnet, llama-2-70b"
-                  value={editFormData.modelId}
-                  onChange={(e) =>
-                    setEditFormData((prev) => ({
-                      ...prev,
-                      modelId: e.target.value,
-                    }))
-                  }
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Identifiant du modèle d'IA à utiliser pour ce service
-                </p>
-              </div>
             </div>
 
             {/* Type-specific fields */}
@@ -612,21 +628,30 @@ export default function ManageServicesPage() {
                 <h3 className="text-lg font-semibold">
                   Configuration de l'API
                 </h3>
+                
+                <p className="text-sm text-muted-foreground">
+                  Votre service doit être compatible avec l'API OpenAI
+                </p>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    URL de l'endpoint
+                    URL de base
                   </label>
                   <Input
-                    placeholder="https://api.example.com/endpoint"
-                    value={editFormData.endpointUrl}
-                    onChange={(e) =>
+                    placeholder="http://localhost:1234"
+                    value={editFormData.baseUrl}
+                    onChange={(e) => {
                       setEditFormData((prev) => ({
                         ...prev,
-                        endpointUrl: e.target.value,
-                      }))
-                    }
+                        baseUrl: e.target.value,
+                      }));
+                      // Reset available models when base URL changes
+                      setAvailableModels([]);
+                    }}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    URL de base de votre service compatible OpenAI
+                  </p>
                 </div>
 
                 <div>
@@ -661,12 +686,77 @@ export default function ManageServicesPage() {
                     }
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Modèles disponibles
+                  </label>
+                  <div className="flex gap-2 mb-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={fetchModels}
+                      disabled={isFetchingModels || !editFormData.baseUrl.trim()}
+                      className="flex items-center gap-2"
+                    >
+                      {isFetchingModels ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="w-4 h-4" />
+                      )}
+                      Récupérer les modèles
+                    </Button>
+                  </div>
+                  
+                  {availableModels.length > 0 && (
+                    <select
+                      className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
+                      value={editFormData.modelId}
+                      onChange={(e) =>
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          modelId: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Sélectionnez un modèle</option>
+                      {availableModels.map((modelId) => (
+                        <option key={modelId} value={modelId}>
+                          {modelId}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  
+                  {availableModels.length === 0 && (
+                    <Input
+                      placeholder="Ex: gpt-4, claude-3-sonnet, llama-2-70b"
+                      value={editFormData.modelId}
+                      onChange={(e) =>
+                        setEditFormData((prev) => ({
+                          ...prev,
+                          modelId: e.target.value,
+                        }))
+                      }
+                    />
+                  )}
+                  
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {availableModels.length > 0
+                      ? "Sélectionnez un modèle dans la liste ou cliquez sur 'Récupérer les modèles' pour actualiser"
+                      : "Cliquez sur 'Récupérer les modèles' pour charger les modèles disponibles depuis votre API"}
+                  </p>
+                </div>
               </div>
             )}
 
             {editingService?.type === "automatic" && (
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Configuration Swagger</h3>
+                
+                <p className="text-sm text-muted-foreground">
+                  Votre service doit être compatible avec l'API OpenAI
+                </p>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">

@@ -7,7 +7,7 @@ export interface ServiceDocument {
   status: "active" | "inactive";
   type: "automatic" | "manual";
   swaggerUrl?: string; // For automatic services
-  endpointUrl?: string; // For manual services - the actual LLM API endpoint
+  baseUrl?: string; // For manual services - base URL of OpenAI-compatible API
   apiKey?: string; // For manual services - API key for authentication
   apiKeyHeader?: string; // For manual services - HTTP header name for the API key
   modelId?: string; // AI model identifier (e.g., "gpt-4", "claude-3-sonnet")

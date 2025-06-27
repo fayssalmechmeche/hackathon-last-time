@@ -35,7 +35,7 @@ export async function handleCreateManualService(
     gradient: serviceData.gradient,
     status: serviceData.status,
     type: "manual" as const,
-    endpointUrl: serviceData.endpointUrl,
+    baseUrl: serviceData.baseUrl,
     apiKey: serviceData.apiKey,
     apiKeyHeader: serviceData.apiKeyHeader,
     modelId: serviceData.modelId,
@@ -68,7 +68,7 @@ export async function handleCreateAutomatedService(
     status: serviceData.status,
     type: "automatic" as const,
     swaggerUrl: serviceData.swaggerUrl,
-    endpointUrl: serviceData.endpointUrl,
+    baseUrl: serviceData.endpointUrl, // Convert endpointUrl to baseUrl for consistency
     modelId: serviceData.modelId,
     jsonSchema,
     createdBy: userId,
@@ -164,6 +164,10 @@ export async function handleExecuteService(
     ],
   };
 
+  // Construct full endpoint URL from base URL
+  const baseUrl = service.baseUrl!.replace(/\/$/, ""); // Remove trailing slash
+  const fullEndpointUrl = `${baseUrl}/v1/chat/completions`;
+
   // Set up headers
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -174,7 +178,7 @@ export async function handleExecuteService(
   }
 
   try {
-    const response = await axios.post(service.endpointUrl!, requestBody, {
+    const response = await axios.post(fullEndpointUrl, requestBody, {
       headers,
     });
 

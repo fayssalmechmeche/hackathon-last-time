@@ -62,6 +62,7 @@ import {
   Pizza,
   Plane,
   Plus,
+  RefreshCw,
   Rocket,
   Ruler,
   Satellite,
@@ -119,7 +120,7 @@ interface Service {
   swaggerUrl?: string;
   fields?: FormField[];
   iconName?: string;
-  endpointUrl?: string;
+  baseUrl?: string;
   createdAt: string;
   updatedAt: string;
   createdBy: string;
@@ -138,7 +139,7 @@ interface FormData {
   title: string;
   description: string;
   swaggerUrl: string;
-  endpointUrl: string;
+  baseUrl: string;
   apiKey: string;
   apiKeyHeader: string;
   modelId: string;
@@ -464,7 +465,7 @@ export default function AdminServicesPage() {
     title: "",
     description: "",
     swaggerUrl: "",
-    endpointUrl: "",
+    baseUrl: "",
     apiKey: "",
     apiKeyHeader: "",
     modelId: "",
@@ -481,6 +482,8 @@ export default function AdminServicesPage() {
   const [routes, setRoutes] = useState<string[]>([]);
   const [selectedRoute, setSelectedRoute] = useState("");
   const [host, setHost] = useState("");
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isFetchingModels, setIsFetchingModels] = useState(false);
   const handleAddService = () => {
     setIsModalOpen(true);
     setModalStep(1);
@@ -489,7 +492,7 @@ export default function AdminServicesPage() {
       title: "",
       description: "",
       swaggerUrl: "",
-      endpointUrl: "",
+      baseUrl: "",
       apiKey: "",
       apiKeyHeader: "",
       modelId: "",
@@ -503,6 +506,38 @@ export default function AdminServicesPage() {
   const handleServiceTypeSelect = (type: "automatic" | "manual") => {
     setServiceType(type);
     setModalStep(2);
+  };
+
+  // Fetch available models from OpenAI-compatible API
+  const fetchModels = async () => {
+    if (!formData.baseUrl.trim()) {
+      toast.error("Veuillez saisir l'URL de base");
+      return;
+    }
+
+    setIsFetchingModels(true);
+    try {
+      const models = await servicesApiMethods.fetchModels(
+        formData.baseUrl,
+        formData.apiKey || undefined,
+        formData.apiKeyHeader || undefined
+      );
+      
+      const modelIds = models.map(model => model.id);
+      setAvailableModels(modelIds);
+      
+      if (modelIds.length === 0) {
+        toast.error("Aucun modèle trouvé");
+      } else {
+        toast.success(`${modelIds.length} modèle(s) trouvé(s)`);
+      }
+    } catch (error) {
+      console.error("Error fetching models:", error);
+      toast.error("Impossible de récupérer les modèles. Vérifiez que l'API est compatible OpenAI.");
+      setAvailableModels([]);
+    } finally {
+      setIsFetchingModels(false);
+    }
   };
 
   const addField = (type: FormField["type"]) => {
@@ -590,7 +625,7 @@ export default function AdminServicesPage() {
           iconName: formData.iconName,
           gradient: formData.gradient,
           status: formData.status,
-          endpointUrl: formData.endpointUrl,
+          baseUrl: formData.baseUrl,
           apiKey: formData.apiKey,
           apiKeyHeader: formData.apiKeyHeader,
           modelId: formData.modelId,
@@ -613,7 +648,7 @@ export default function AdminServicesPage() {
           title: "",
           description: "",
           swaggerUrl: "",
-          endpointUrl: "",
+          baseUrl: "",
           apiKey: "",
           apiKeyHeader: "",
           modelId: "",
@@ -655,7 +690,7 @@ export default function AdminServicesPage() {
             title: "",
             description: "",
             swaggerUrl: "",
-            endpointUrl: "",
+            baseUrl: "",
             apiKey: "",
             apiKeyHeader: "",
             modelId: "",
@@ -1008,73 +1043,134 @@ export default function AdminServicesPage() {
                     <p className="text-xs text-muted-foreground mt-1">
                       Identifiant du modèle d'IA à utiliser pour ce service
                     </p>
-                  </div>
-
-                  {/* Endpoint URL - only for manual services */}
+                  </div>                  {/* Manual service configuration */}
                   {serviceType === "manual" && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        URL de l'endpoint
-                      </label>
-                      <Input
-                        placeholder="https://api.example.com/llm-endpoint"
-                        value={formData.endpointUrl}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            endpointUrl: e.target.value,
-                          }))
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        URL de l'API LLM où envoyer les données du formulaire
+                    <div className="space-y-4">
+                      <p className="text-sm text-muted-foreground">
+                        Votre service doit être compatible avec l'API OpenAI
                       </p>
-                    </div>
-                  )}
+                      
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          URL de base
+                        </label>
+                        <Input
+                          placeholder="http://localhost:1234"
+                          value={formData.baseUrl}
+                          onChange={(e) => {
+                            setFormData((prev) => ({
+                              ...prev,
+                              baseUrl: e.target.value,
+                            }));
+                            // Reset available models when base URL changes
+                            setAvailableModels([]);
+                          }}
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          URL de base de votre service compatible OpenAI
+                        </p>
+                      </div>
 
-                  {/* API Key - only for manual services */}
-                  {serviceType === "manual" && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Clé API
-                      </label>
-                      <Input
-                        type="password"
-                        placeholder="sk-..."
-                        value={formData.apiKey}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            apiKey: e.target.value,
-                          }))
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Clé d'API pour l'authentification avec le service LLM
-                      </p>
-                    </div>
-                  )}
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Clé API
+                        </label>
+                        <Input
+                          type="password"
+                          placeholder="sk-..."
+                          value={formData.apiKey}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              apiKey: e.target.value,
+                            }))
+                          }
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Clé d'API pour l'authentification avec le service LLM
+                        </p>
+                      </div>
 
-                  {/* API Key Header - only for manual services */}
-                  {serviceType === "manual" && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        En-tête de la clé API
-                      </label>
-                      <Input
-                        placeholder="Authorization"
-                        value={formData.apiKeyHeader}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            apiKeyHeader: e.target.value,
-                          }))
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Nom de l'en-tête HTTP pour envoyer la clé d'API (ex:
-                        Authorization, X-API-Key)
-                      </p>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          En-tête de la clé API
+                        </label>
+                        <Input
+                          placeholder="Authorization"
+                          value={formData.apiKeyHeader}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              apiKeyHeader: e.target.value,
+                            }))
+                          }
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Nom de l'en-tête HTTP pour envoyer la clé d'API (ex:
+                          Authorization, X-API-Key)
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Modèles disponibles
+                        </label>
+                        <div className="flex gap-2 mb-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={fetchModels}
+                            disabled={isFetchingModels || !formData.baseUrl.trim()}
+                            className="flex items-center gap-2"
+                          >
+                            {isFetchingModels ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <RefreshCw className="w-4 h-4" />
+                            )}
+                            Récupérer les modèles
+                          </Button>
+                        </div>
+                        
+                        {availableModels.length > 0 && (
+                          <select
+                            className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
+                            value={formData.modelId}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                modelId: e.target.value,
+                              }))
+                            }
+                          >
+                            <option value="">Sélectionnez un modèle</option>
+                            {availableModels.map((modelId) => (
+                              <option key={modelId} value={modelId}>
+                                {modelId}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        
+                        {availableModels.length === 0 && (
+                          <Input
+                            placeholder="Ex: gpt-4, claude-3-sonnet, llama-2-70b"
+                            value={formData.modelId}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                modelId: e.target.value,
+                              }))
+                            }
+                          />
+                        )}
+                        
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {availableModels.length > 0
+                            ? "Sélectionnez un modèle dans la liste ou cliquez sur 'Récupérer les modèles' pour actualiser"
+                            : "Cliquez sur 'Récupérer les modèles' pour charger les modèles disponibles depuis votre API"}
+                        </p>
+                      </div>
                     </div>
                   )}
 

@@ -25,7 +25,7 @@ export interface CreateManualServiceRequest {
   iconName: string;
   gradient: string;
   status: "active" | "inactive";
-  endpointUrl: string;
+  baseUrl: string;
   apiKey: string;
   apiKeyHeader: string;
   modelId: string;
@@ -54,7 +54,7 @@ export interface UpdateServiceRequest {
   iconName?: string;
   gradient?: string;
   status?: "active" | "inactive";
-  endpointUrl?: string;
+  baseUrl?: string;
   apiKey?: string;
   apiKeyHeader?: string;
   modelId?: string;
@@ -70,7 +70,7 @@ export interface ServiceResponse {
   status: "active" | "inactive";
   type: "automatic" | "manual";
   swaggerUrl?: string;
-  endpointUrl?: string;
+  baseUrl?: string;
   apiKey?: string;
   apiKeyHeader?: string;
   modelId?: string;
@@ -78,6 +78,19 @@ export interface ServiceResponse {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+}
+
+// OpenAI Models API response types
+export interface OpenAIModel {
+  id: string;
+  object: string;
+  created: number;
+  owned_by: string;
+}
+
+export interface OpenAIModelsResponse {
+  object: string;
+  data: OpenAIModel[];
 }
 
 // Services API endpoints
@@ -134,4 +147,21 @@ export const servicesApiMethods = {
 
   getSwaggerRoutes: (swaggerUrl: string) =>
     swaggerApi.get(`/swagger/routes/${swaggerUrl}`),
+
+  // Fetch available models from OpenAI-compatible API
+  fetchModels: async (baseUrl: string, apiKey?: string, apiKeyHeader?: string): Promise<OpenAIModel[]> => {
+    const cleanBaseUrl = baseUrl.replace(/\/$/, "");
+    const modelsUrl = `${cleanBaseUrl}/v1/models`;
+    
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    if (apiKey && apiKeyHeader) {
+      headers[apiKeyHeader] = apiKey;
+    }
+    
+    const response = await axios.get<OpenAIModelsResponse>(modelsUrl, { headers });
+    return response.data.data;
+  },
 };
