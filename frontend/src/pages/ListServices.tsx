@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   Archive,
+  ArrowRight,
   Award,
   Battery,
   Bell,
@@ -45,6 +46,7 @@ import {
   Key,
   Lightbulb,
   Link,
+  Loader2,
   Lock,
   Mail,
   Map,
@@ -94,13 +96,11 @@ import {
   X,
   XCircle,
   Zap,
-  ArrowRight,
-  Loader2,
 } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Layout from "../components/Layout";
-import { useNavigate } from "react-router-dom";
 import {
   servicesApiMethods,
   type CreateAutomatedServiceRequest,
@@ -830,7 +830,7 @@ export default function AdminServicesPage() {
                 filteredServices.map((service) => (
                   <Card
                     key={service._id}
-                    className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-all duration-300 group cursor-pointer"
+                    className="bg-card border-border hover:bg-accent/50 transition-all duration-300 group cursor-pointer"
                     onClick={() => handleServiceClick(service._id)}
                   >
                     <CardContent className="p-6">
@@ -917,7 +917,7 @@ export default function AdminServicesPage() {
                         <Bot className="w-8 h-8" />
                       </div>
                       <h3 className="font-semibold text-lg mb-2">
-                        Configuration Automatique
+                        Configuration automatique (recommandée)
                       </h3>
                       <p className="text-muted-foreground text-sm mb-4">
                         Importez un swagger d'API IA pour générer
@@ -939,7 +939,7 @@ export default function AdminServicesPage() {
                         <Settings className="w-8 h-8" />
                       </div>
                       <h3 className="font-semibold text-lg mb-2">
-                        Configuration Manuelle
+                        Configuration manuelle
                       </h3>
                       <p className="text-muted-foreground text-sm mb-4">
                         Créez manuellement les champs du formulaire selon les
