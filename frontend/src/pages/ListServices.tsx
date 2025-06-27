@@ -12,7 +12,6 @@ import {
   Bug,
   Cake,
   Calculator,
-  Calendar,
   Camera,
   Car,
   CheckCircle,
@@ -36,10 +35,9 @@ import {
   Gamepad2,
   Gift,
   Globe,
-  Hash,
+  HelpCircle,
   Headphones,
   Heart,
-  HelpCircle,
   Home,
   Image,
   Info,
@@ -78,13 +76,10 @@ import {
   Tag,
   Target,
   Thermometer,
-  ToggleLeft,
   TreePine,
   Trophy,
   Truck,
-  Type,
   Umbrella,
-  Upload,
   Users,
   Video,
   Volume2,
@@ -97,7 +92,6 @@ import {
   ArrowRight,
   Loader2,
   Minus, // Added for removing body fields
-  CornerRightDown, // Added for sub-inputs
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -138,6 +132,7 @@ interface FormField {
   children?: FormField[]; // Added for nested fields
   expanded?: boolean; // Nouveau: pour gérer l'état d'expansion
   linkedBodyField?: string; // ID du champ body lié
+  defaultValue?: string; // Valeur par défaut pour les champs du body
 }
 
 interface FormData {
@@ -175,13 +170,33 @@ interface ModalProps {
   title: string;
 }
 
+// Fonction utilitaire pour vérifier si un champ du body est lié à un champ du formulaire
+const isBodyFieldLinked = (
+  bodyFieldId: number,
+  formFields: FormField[]
+): boolean => {
+  return formFields.some(
+    (field) => field.linkedBodyField === bodyFieldId.toString()
+  );
+};
+
 const NestedField: React.FC<{
   field: FormField;
   onUpdate: (updatedField: FormField) => void;
   onRemove: () => void;
   onAddChild: (type: FormField["type"]) => void;
   depth: number;
-}> = ({ field, onUpdate, onRemove, onAddChild, depth }) => {
+  isLinked?: boolean;
+  formFields?: FormField[]; // Ajouter pour pouvoir vérifier les liaisons dans les champs imbriqués
+}> = ({
+  field,
+  onUpdate,
+  onRemove,
+  onAddChild,
+  depth,
+  isLinked = false,
+  formFields = [],
+}) => {
   const toggleExpand = () => {
     onUpdate({ ...field, expanded: !field.expanded });
   };
@@ -209,7 +224,7 @@ const NestedField: React.FC<{
         </button>
 
         <div className="flex-grow grid grid-cols-12 gap-2 items-center">
-          <div className="col-span-3">
+          <div className="col-span-2">
             <select
               value={field.type}
               onChange={(e) =>
@@ -229,13 +244,38 @@ const NestedField: React.FC<{
             </select>
           </div>
 
-          <div className="col-span-5">
+          <div className="col-span-3">
             <input
               type="text"
               placeholder="Nom du champ"
               value={field.label}
               onChange={(e) => onUpdate({ ...field, label: e.target.value })}
               className="w-full bg-gray-700 text-white rounded px-2 py-1 text-sm"
+            />
+          </div>
+
+          {/* Input valeur - désactivé si le champ est lié */}
+          <div className="col-span-3">
+            <input
+              type="text"
+              placeholder={
+                isLinked ? "Valeur du formulaire" : "Valeur par défaut"
+              }
+              value={field.defaultValue || ""}
+              onChange={(e) =>
+                onUpdate({ ...field, defaultValue: e.target.value })
+              }
+              disabled={isLinked}
+              className={`w-full rounded px-2 py-1 text-sm ${
+                isLinked
+                  ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-700 text-white"
+              }`}
+              title={
+                isLinked
+                  ? "Ce champ est lié à un champ du formulaire"
+                  : "Valeur par défaut pour ce champ"
+              }
             />
           </div>
 
@@ -251,7 +291,12 @@ const NestedField: React.FC<{
             <span className="text-xs text-gray-300">Requis</span>
           </div>
 
-          <div className="col-span-2 flex justify-end">
+          <div className="col-span-2 flex justify-end gap-1">
+            {isLinked && (
+              <span className="text-xs text-green-500 flex items-center">
+                <CheckCircle size={12} />
+              </span>
+            )}
             <button
               onClick={onRemove}
               className="text-red-500 hover:text-red-300"
@@ -363,6 +408,8 @@ const NestedField: React.FC<{
                   });
                 }}
                 depth={depth + 1}
+                isLinked={isBodyFieldLinked(child.id, formFields)}
+                formFields={formFields}
               />
             </div>
           ))}
@@ -807,80 +854,6 @@ export default function AdminServicesPage() {
     }));
   };
 
-  const addBodySelectOption = (
-    fieldId: number,
-    fields: FormField[]
-  ): FormField[] => {
-    return fields.map((field) => {
-      if (field.id === fieldId) {
-        return { ...field, options: [...(field.options || []), ""] };
-      }
-      if (field.children) {
-        return {
-          ...field,
-          children: addBodySelectOption(fieldId, field.children),
-        };
-      }
-      return field;
-    });
-  };
-
-  const updateBodySelectOption = (
-    fieldId: number,
-    optionIndex: number,
-    value: string,
-    fields: FormField[]
-  ): FormField[] => {
-    return fields.map((field) => {
-      if (field.id === fieldId) {
-        return {
-          ...field,
-          options: field.options?.map((opt, idx) =>
-            idx === optionIndex ? value : opt
-          ),
-        };
-      }
-      if (field.children) {
-        return {
-          ...field,
-          children: updateBodySelectOption(
-            fieldId,
-            optionIndex,
-            value,
-            field.children
-          ),
-        };
-      }
-      return field;
-    });
-  };
-
-  const removeBodySelectOption = (
-    fieldId: number,
-    optionIndex: number,
-    fields: FormField[]
-  ): FormField[] => {
-    return fields.map((field) => {
-      if (field.id === fieldId) {
-        return {
-          ...field,
-          options: field.options?.filter((_, idx) => idx !== optionIndex),
-        };
-      }
-      if (field.children) {
-        return {
-          ...field,
-          children: removeBodySelectOption(
-            fieldId,
-            optionIndex,
-            field.children
-          ),
-        };
-      }
-      return field;
-    });
-  };
-
   const addBodyField = (type: FormField["type"]) => {
     const newField: FormField = {
       id: Date.now(),
@@ -1111,25 +1084,6 @@ export default function AdminServicesPage() {
       icon.name.toLowerCase().includes(iconSearchTerm.toLowerCase()) ||
       icon.label.toLowerCase().includes(iconSearchTerm.toLowerCase())
   );
-
-  const getFieldIcon = (type: FormField["type"]) => {
-    switch (type) {
-      case "file":
-        return <Upload className="w-4 h-4" />;
-      case "text":
-        return <Type className="w-4 h-4" />;
-      case "number":
-        return <Hash className="w-4 h-4" />;
-      case "date":
-        return <Calendar className="w-4 h-4" />;
-      case "select":
-        return <ToggleLeft className="w-4 h-4" />;
-      case "object":
-        return <Code className="w-4 h-4" />;
-      default:
-        return <Type className="w-4 h-4" />;
-    }
-  };
 
   return (
     <Layout>
@@ -1848,6 +1802,11 @@ export default function AdminServicesPage() {
                                 }));
                               }}
                               depth={0}
+                              isLinked={isBodyFieldLinked(
+                                field.id,
+                                formData.fields
+                              )}
+                              formFields={formData.fields}
                             />
                           ))
                         ) : (
