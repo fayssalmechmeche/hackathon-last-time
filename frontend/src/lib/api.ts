@@ -126,6 +126,9 @@ export const servicesApiMethods = {
 
   deleteService: (id: string) => servicesApi.delete(`/services/${id}`),
 
+  executeService: (id: string, inputData: Record<string, unknown>) =>
+    servicesApi.post(`/services/${id}/execute`, inputData),
+
   analyzeSwagger: (swaggerUrl: string) =>
     swaggerApi.post("/swagger/import", { link: swaggerUrl }),
 

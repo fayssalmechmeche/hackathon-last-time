@@ -3,6 +3,7 @@ import validator from "@rjsf/validator-ajv8";
 import { ArrowLeft, Loader2, Send } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner";
 import Layout from "../components/Layout";
 import { Button } from "../components/ui/button";
 import {
@@ -21,6 +22,7 @@ export default function ServiceFormPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [service, setService] = useState<ServiceResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [response, setResponse] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchService = async () => {
@@ -46,24 +48,44 @@ export default function ServiceFormPage() {
   }, [serviceId, navigate]);
 
   const handleSubmit = async (data: { formData?: Record<string, unknown> }) => {
-    if (!data.formData) return;
+    if (!data.formData || !serviceId) return;
 
     setIsSubmitting(true);
-    console.log("Données du formulaire:", data.formData);
+    setResponse(null);
 
-    // Simulation d'un appel API
     try {
-      // Ici vous pourriez faire un appel API réel
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Convert any File objects to base64
+      const processedData: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(data.formData)) {
+        if (value instanceof File) {
+          const base64 = await fileToBase64(value);
+          processedData[key] = base64;
+        } else {
+          processedData[key] = value;
+        }
+      }
 
-      alert("Formulaire soumis avec succès !");
-      navigate("/services");
+      const result = await servicesApiMethods.executeService(
+        serviceId,
+        processedData,
+      );
+      setResponse(result.data.response);
+      toast.success("Service executed successfully!");
     } catch (error) {
-      console.error("Erreur lors de la soumission:", error);
-      alert("Erreur lors de la soumission du formulaire");
+      console.error("Error executing service:", error);
+      toast.error("Failed to execute service. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleGoBack = () => {
@@ -194,6 +216,20 @@ export default function ServiceFormPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Response Display */}
+          {response && (
+            <Card className="bg-card border-border max-w-4xl mx-auto mt-6">
+              <CardHeader>
+                <CardTitle className="text-foreground">Réponse</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="whitespace-pre-wrap bg-muted p-4 rounded-lg text-foreground">
+                  {response}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Custom styles for RJSF */}

@@ -127,3 +127,65 @@ export async function handleDeleteService(
 
   return await deleteService(serviceId);
 }
+
+export async function handleExecuteService(
+  serviceId: string,
+  inputData: Record<string, unknown>,
+  userId: string
+): Promise<{ response: string }> {
+  const service = await findServiceById(serviceId);
+  if (!service) {
+    throw new Error("service_not_found");
+  }
+
+  if (service.status !== "active") {
+    throw new Error("service_inactive");
+  }
+
+  // Convert input data to text message
+  const userMessage = Object.entries(inputData)
+    .map(([key, value]) => {
+      if (typeof value === "string" && value.startsWith("data:")) {
+        // Handle base64 files - include full data for LLM processing
+        return `${key}: ${value}`;
+      }
+      return `${key}: ${String(value)}`;
+    })
+    .join(", ");
+
+  // Prepare OpenAI-compatible request
+  const requestBody = {
+    model: service.modelId,
+    messages: [
+      {
+        role: "user",
+        content: userMessage,
+      },
+    ],
+  };
+
+  // Set up headers
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (service.apiKey && service.apiKeyHeader) {
+    headers[service.apiKeyHeader] = service.apiKey;
+  }
+
+  try {
+    const response = await axios.post(service.endpointUrl!, requestBody, {
+      headers,
+    });
+
+    const responseContent = response.data.choices?.[0]?.message?.content;
+    if (!responseContent) {
+      throw new Error("Invalid response format from service API");
+    }
+
+    return { response: responseContent };
+  } catch (error) {
+    console.error("Service API error:", error);
+    throw new Error("service_api_error");
+  }
+}

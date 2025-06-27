@@ -2,9 +2,10 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import status from "http-status";
 import {
-  handleCreateManualService,
   handleCreateAutomatedService,
+  handleCreateManualService,
   handleDeleteService,
+  handleExecuteService,
   handleGetAllActiveServices,
   handleGetService,
   handleGetUserServices,
@@ -12,8 +13,8 @@ import {
 } from "../services/serviceService.js";
 import { verifyJWT } from "../utils/auth.js";
 import {
-  CreateManualServiceSchema,
   CreateAutomatedServiceSchema,
+  CreateManualServiceSchema,
   UpdateServiceSchema,
 } from "../utils/validation.js";
 
@@ -218,6 +219,45 @@ servicesRouter.delete("/:id", jwtAuth, async (c) => {
           console.error("Error deleting service:", error);
           throw new HTTPException(status.INTERNAL_SERVER_ERROR, {
             message: "Failed to delete service",
+          });
+      }
+    }
+    throw new HTTPException(status.INTERNAL_SERVER_ERROR);
+  }
+});
+
+// Execute a service with user input
+servicesRouter.post("/:id/execute", jwtAuth, async (c) => {
+  const userId = c.get("userId");
+  const serviceId = c.req.param("id");
+  const body = await c.req.json();
+
+  try {
+    const result = await handleExecuteService(serviceId, body, userId);
+    return c.json(result);
+  } catch (error) {
+    if (error instanceof Error) {
+      switch (error.message) {
+        case "service_not_found":
+          throw new HTTPException(status.NOT_FOUND, {
+            message: "Service not found",
+          });
+        case "service_inactive":
+          throw new HTTPException(status.BAD_REQUEST, {
+            message: "Service is not active",
+          });
+        case "invalid_input":
+          throw new HTTPException(status.BAD_REQUEST, {
+            message: "Invalid input data",
+          });
+        case "service_api_error":
+          throw new HTTPException(status.BAD_GATEWAY, {
+            message: "Service API call failed",
+          });
+        default:
+          console.error("Error executing service:", error);
+          throw new HTTPException(status.INTERNAL_SERVER_ERROR, {
+            message: "Failed to execute service",
           });
       }
     }
