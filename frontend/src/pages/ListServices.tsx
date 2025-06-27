@@ -865,10 +865,10 @@ export default function AdminServicesPage() {
                 filteredServices.map((service) => (
                   <Card
                     key={service._id}
-                    className="bg-card border-border hover:bg-accent/50 transition-all duration-300 group cursor-pointer"
+                    className="bg-card border-border hover:bg-accent/50 transition-all duration-300 group cursor-pointer h-full"
                     onClick={() => handleServiceClick(service._id)}
                   >
-                    <CardContent className="p-6">
+                    <CardContent className="p-6 h-full flex flex-col">
                       <div className="flex items-start justify-between mb-4">
                         <div
                           className={`w-12 h-12 rounded-lg bg-gradient-to-r ${service.gradient} flex items-center justify-center text-white`}
@@ -881,7 +881,7 @@ export default function AdminServicesPage() {
                         {service.title}
                         <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </h3>
-                      <p className="text-gray-400 text-sm mb-4 line-clamp-2">
+                      <p className="text-gray-400 text-sm mb-4 line-clamp-2 flex-grow">
                         {service.description}
                       </p>
 
@@ -909,7 +909,7 @@ export default function AdminServicesPage() {
                       </div>
 
                       <button
-                        className="w-full bg-gray-700 hover:bg-gray-600 text-white border-0 h-9 rounded-md px-3 text-sm font-medium transition-colors"
+                        className="w-full bg-gray-700 hover:bg-gray-600 text-white border-0 h-9 rounded-md px-3 text-sm font-medium transition-colors mt-auto"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleServiceClick(service._id);
@@ -1031,7 +1031,7 @@ export default function AdminServicesPage() {
                       <p className="text-sm text-muted-foreground">
                         Votre service doit être compatible avec l'API OpenAI
                       </p>
-                      
+
                       <div>
                         <label className="block text-sm font-medium mb-2">
                           URL de base
@@ -1102,7 +1102,9 @@ export default function AdminServicesPage() {
                             type="button"
                             variant="outline"
                             onClick={fetchModels}
-                            disabled={isFetchingModels || !formData.baseUrl.trim()}
+                            disabled={
+                              isFetchingModels || !formData.baseUrl.trim()
+                            }
                             className="flex items-center gap-2"
                           >
                             {isFetchingModels ? (
@@ -1113,7 +1115,7 @@ export default function AdminServicesPage() {
                             Récupérer les modèles
                           </Button>
                         </div>
-                        
+
                         {availableModels.length > 0 ? (
                           <select
                             className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
@@ -1134,10 +1136,11 @@ export default function AdminServicesPage() {
                           </select>
                         ) : (
                           <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md border border-dashed">
-                            Cliquez sur "Récupérer les modèles" pour charger les modèles disponibles
+                            Cliquez sur "Récupérer les modèles" pour charger les
+                            modèles disponibles
                           </div>
                         )}
-                        
+
                         <p className="text-xs text-muted-foreground mt-1">
                           {availableModels.length > 0
                             ? "Sélectionnez un modèle dans la liste"
