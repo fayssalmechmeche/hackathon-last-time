@@ -6,7 +6,20 @@ export const FormFieldSchema = z.object({
   label: z.string().min(1),
   required: z.boolean(),
   options: z.array(z.string()).optional(),
+  linkedBodyField: z.string().optional(), // ID du champ body lié
 });
+
+export const BodyFieldSchema: z.ZodType<any> = z.lazy(() =>
+  z.object({
+    id: z.number(),
+    type: z.enum(["file", "text", "number", "date", "select", "object"]),
+    label: z.string().min(1),
+    required: z.boolean(),
+    options: z.array(z.string()).optional(),
+    children: z.array(BodyFieldSchema).optional(),
+    expanded: z.boolean().optional(),
+  })
+);
 
 export const CreateManualServiceSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -18,6 +31,7 @@ export const CreateManualServiceSchema = z.object({
   apiKey: z.string().min(1, "API key is required"),
   apiKeyHeader: z.string().min(1, "API key header is required"),
   fields: z.array(FormFieldSchema).min(1, "At least one field is required"),
+  bodyStructure: z.array(BodyFieldSchema).optional(), // Structure du body
 });
 
 export const CreateAutomatedServiceSchema = z.object({

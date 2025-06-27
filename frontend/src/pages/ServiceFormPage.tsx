@@ -46,21 +46,23 @@ export default function ServiceFormPage() {
   }, [serviceId, navigate]);
 
   const handleSubmit = async (data: { formData?: Record<string, unknown> }) => {
-    if (!data.formData) return;
+    if (!data.formData || !service) return;
 
     setIsSubmitting(true);
     console.log("Données du formulaire:", data.formData);
 
-    // Simulation d'un appel API
     try {
-      // Ici vous pourriez faire un appel API réel
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      alert("Formulaire soumis avec succès !");
+      // Utiliser la nouvelle fonction executeService
+      const response = await servicesApiMethods.executeService(serviceId!, data.formData);
+      
+      console.log("Résultat de l'API:", response.data);
+      alert("Service exécuté avec succès !");
+      
+      // Optionnel: rediriger ou afficher les résultats
       navigate("/services");
     } catch (error) {
-      console.error("Erreur lors de la soumission:", error);
-      alert("Erreur lors de la soumission du formulaire");
+      console.error("Erreur lors de l'exécution du service:", error);
+      alert("Erreur lors de l'exécution du service");
     } finally {
       setIsSubmitting(false);
     }

@@ -9,6 +9,7 @@ import {
   handleGetService,
   handleGetUserServices,
   handleUpdateService,
+  executeService,
 } from "../services/serviceService.js";
 import { verifyJWT } from "../utils/auth.js";
 import {
@@ -221,6 +222,53 @@ servicesRouter.delete("/:id", jwtAuth, async (c) => {
           });
       }
     }
+    throw new HTTPException(status.INTERNAL_SERVER_ERROR);
+  }
+});
+
+// Execute a service with form data
+servicesRouter.post("/:id/execute", async (c) => {
+  const serviceId = c.req.param("id");
+  const formData = await c.req.json();
+
+  try {
+    const result = await executeService(serviceId, formData);
+    return c.json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error executing service:", error);
+
+    if (error instanceof Error) {
+      switch (error.message) {
+        case "service_not_found":
+          throw new HTTPException(status.NOT_FOUND, {
+            message: "Service not found",
+          });
+        case "service_inactive":
+          throw new HTTPException(status.BAD_REQUEST, {
+            message: "Service is not active",
+          });
+        case "no_endpoint_configured":
+          throw new HTTPException(status.BAD_REQUEST, {
+            message: "Service has no endpoint configured",
+          });
+        default:
+          if (error.message.startsWith("api_call_failed:")) {
+            throw new HTTPException(status.BAD_GATEWAY, {
+              message: `External API call failed: ${error.message.replace(
+                "api_call_failed: ",
+                ""
+              )}`,
+            });
+          }
+          throw new HTTPException(status.INTERNAL_SERVER_ERROR, {
+            message: "Failed to execute service",
+          });
+      }
+    }
+
     throw new HTTPException(status.INTERNAL_SERVER_ERROR);
   }
 });

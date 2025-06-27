@@ -126,6 +126,7 @@ interface Service {
   updatedAt: string;
   createdBy: string;
   jsonSchema?: object;
+  bodyStructure?: FormField[];
 }
 
 interface FormField {
@@ -961,7 +962,7 @@ export default function AdminServicesPage() {
             options: field.options,
             linkedBodyField: field.linkedBodyField,
           })),
-          // bodyStructure: formData.bodyStructure, // TODO: Ajouter au backend
+          bodyStructure: formData.bodyStructure,
         };
 
         await servicesApiMethods.createManualService(serviceData);
@@ -991,7 +992,9 @@ export default function AdminServicesPage() {
         });
 
         // Show success message
-        toast.success("Service créé avec succès");
+        toast.success(
+          "Service créé avec succès avec la structure du body et les liaisons configurées"
+        );
       } else if (serviceType === "automatic") {
         if (isSwaggerGood) {
           // For automatic services

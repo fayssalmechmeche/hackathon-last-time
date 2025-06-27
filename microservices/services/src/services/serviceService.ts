@@ -39,6 +39,8 @@ export async function handleCreateManualService(
     apiKey: serviceData.apiKey,
     apiKeyHeader: serviceData.apiKeyHeader,
     jsonSchema,
+    fields: serviceData.fields, // Store form fields with links
+    bodyStructure: serviceData.bodyStructure, // Store body structure
     createdBy: userId,
   };
 
@@ -124,4 +126,176 @@ export async function handleDeleteService(
   }
 
   return await deleteService(serviceId);
+}
+
+/**
+ * Execute a service by mapping form data to the API body structure
+ */
+export async function executeService(
+  serviceId: string,
+  formData: Record<string, any>
+): Promise<any> {
+  // Get the service configuration
+  const service = await findServiceById(serviceId);
+  if (!service) {
+    throw new Error("service_not_found");
+  }
+
+  if (service.status !== "active") {
+    throw new Error("service_inactive");
+  }
+
+  if (!service.endpointUrl) {
+    throw new Error("no_endpoint_configured");
+  }
+
+  // Build the request body based on the service configuration
+  let requestBody: any = {};
+
+  if (service.type === "manual" && service.fields && service.bodyStructure) {
+    // Map form data to body structure using the linkedBodyField
+    requestBody = mapFormDataToBody(
+      formData,
+      service.fields,
+      service.bodyStructure
+    );
+  } else if (service.type === "automatic" && service.jsonSchema) {
+    // For automatic services, use the form data directly
+    requestBody = formData;
+  } else {
+    // Fallback: use form data as is
+    requestBody = formData;
+  }
+
+  // Prepare headers
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  // Add API key if configured
+  if (service.apiKey && service.apiKeyHeader) {
+    headers[service.apiKeyHeader] = service.apiKey;
+  }
+
+  try {
+    // Make the API call
+    const response = await axios.post(service.endpointUrl, requestBody, {
+      headers,
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error executing service:", error);
+    throw new Error(`api_call_failed: ${error.message}`);
+  }
+}
+
+/**
+ * Map form data to body structure using field links
+ */
+function mapFormDataToBody(
+  formData: Record<string, any>,
+  fields: any[],
+  bodyStructure: any[]
+): any {
+  const result: any = {};
+
+  // Create a map of body field IDs to their paths and info
+  const bodyFieldMap = new Map<string, { path: string; field: any }>();
+
+  function collectBodyFields(structure: any[], prefix = ""): void {
+    structure.forEach((field) => {
+      const path = prefix ? `${prefix}.${field.label}` : field.label;
+      bodyFieldMap.set(field.id.toString(), { path, field });
+
+      if (field.children && field.children.length > 0) {
+        collectBodyFields(field.children, path);
+      }
+    });
+  }
+
+  collectBodyFields(bodyStructure);
+
+  // Map each form field to its linked body field
+  fields.forEach((formField) => {
+    if (formField.linkedBodyField && formData[formField.label] !== undefined) {
+      const bodyFieldInfo = bodyFieldMap.get(formField.linkedBodyField);
+      if (bodyFieldInfo) {
+        const value = processFieldValue(
+          formData[formField.label],
+          formField,
+          bodyFieldInfo.field
+        );
+        setNestedValue(result, bodyFieldInfo.path, value);
+      }
+    }
+  });
+
+  return result;
+}
+
+/**
+ * Process field value based on field types
+ */
+function processFieldValue(value: any, formField: any, bodyField: any): any {
+  // Handle different field types
+  switch (bodyField.type) {
+    case "number":
+      return typeof value === "string" ? parseFloat(value) : value;
+    case "text":
+      return String(value);
+    case "file":
+      // For files, you might want to handle base64 data or file uploads
+      return value;
+    case "date":
+      return value;
+    case "select":
+      return value;
+    default:
+      return value;
+  }
+}
+
+/**
+ * Set a nested value in an object using dot notation
+ */
+function setNestedValue(obj: any, path: string, value: any): void {
+  const keys = path.split(".");
+  let current = obj;
+
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (!(key in current) || typeof current[key] !== "object") {
+      current[key] = {};
+    }
+    current = current[key];
+  }
+
+  current[keys[keys.length - 1]] = value;
+}
+
+/**
+ * Debug function to test the mapping logic
+ */
+export function debugMapping(
+  formData: Record<string, any>,
+  fields: any[],
+  bodyStructure: any[]
+): { originalFormData: any; mappedBody: any; mapping: any[] } {
+  const mappedBody = mapFormDataToBody(formData, fields, bodyStructure);
+
+  // Create a mapping report
+  const mapping = fields
+    .filter((field) => field.linkedBodyField)
+    .map((field) => ({
+      formField: field.label,
+      formValue: formData[field.label],
+      bodyFieldId: field.linkedBodyField,
+      bodyPath: "calculated in mapping",
+    }));
+
+  return {
+    originalFormData: formData,
+    mappedBody,
+    mapping,
+  };
 }

@@ -34,6 +34,22 @@ export interface CreateManualServiceRequest {
     label: string;
     required: boolean;
     options?: string[];
+    linkedBodyField?: string;
+  }>;
+  bodyStructure?: Array<{
+    id: number;
+    type: "file" | "text" | "number" | "date" | "select" | "object";
+    label: string;
+    required: boolean;
+    options?: string[];
+    children?: Array<{
+      id: number;
+      type: "file" | "text" | "number" | "date" | "select" | "object";
+      label: string;
+      required: boolean;
+      options?: string[];
+    }>;
+    expanded?: boolean;
   }>;
 }
 
@@ -75,6 +91,29 @@ export interface ServiceResponse {
   createdAt: string;
   updatedAt: string;
   createdBy: string;
+  fields?: Array<{
+    id: number;
+    type: "file" | "text" | "number" | "date" | "select";
+    label: string;
+    required: boolean;
+    options?: string[];
+    linkedBodyField?: string;
+  }>;
+  bodyStructure?: Array<{
+    id: number;
+    type: "file" | "text" | "number" | "date" | "select" | "object";
+    label: string;
+    required: boolean;
+    options?: string[];
+    children?: Array<{
+      id: number;
+      type: "file" | "text" | "number" | "date" | "select" | "object";
+      label: string;
+      required: boolean;
+      options?: string[];
+    }>;
+    expanded?: boolean;
+  }>;
 }
 
 // Services API endpoints
@@ -128,4 +167,8 @@ export const servicesApiMethods = {
 
   getSwaggerRoutes: (swaggerUrl: string) =>
     swaggerApi.get(`/swagger/routes/${swaggerUrl}`),
+
+  // Execute a service with form data
+  executeService: (serviceId: string, formData: Record<string, unknown>) =>
+    servicesApi.post(`/services/${serviceId}/execute`, formData),
 };

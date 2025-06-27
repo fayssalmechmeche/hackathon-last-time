@@ -11,13 +11,20 @@ export interface ServiceDocument {
   apiKey?: string; // For manual services - API key for authentication
   apiKeyHeader?: string; // For manual services - HTTP header name for the API key
   jsonSchema?: object; // Generated JSON Schema for dynamic forms
+  fields?: FormField[]; // Form fields for manual services
+  bodyStructure?: BodyField[]; // Structure of the request body
   createdAt: Date;
   updatedAt: Date;
   createdBy: string; // User ID who created the service
 }
 
-export type ServiceDocumentInsert = Omit<ServiceDocument, "createdAt" | "updatedAt">;
-export type ServiceDocumentUpdate = Partial<Omit<ServiceDocument, "_id" | "createdAt" | "updatedAt">>;
+export type ServiceDocumentInsert = Omit<
+  ServiceDocument,
+  "createdAt" | "updatedAt"
+>;
+export type ServiceDocumentUpdate = Partial<
+  Omit<ServiceDocument, "_id" | "createdAt" | "updatedAt">
+>;
 
 export interface FormField {
   id: number;
@@ -25,6 +32,17 @@ export interface FormField {
   label: string;
   required: boolean;
   options?: string[];
+  linkedBodyField?: string; // ID du champ body lié
+}
+
+export interface BodyField {
+  id: number;
+  type: "file" | "text" | "number" | "date" | "select" | "object";
+  label: string;
+  required: boolean;
+  options?: string[];
+  children?: BodyField[]; // Pour les objets imbriqués
+  expanded?: boolean;
 }
 
 export interface GeneratedJSONSchema {
