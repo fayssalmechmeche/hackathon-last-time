@@ -25,7 +25,10 @@ import {
   Cpu,
   Database,
   Download,
-  ExternalLink,
+  CornerDownRight,
+  ChevronDown,
+  ChevronRight,
+  MoreVertical,
   Eye,
   FileText,
   Fish,
@@ -63,7 +66,6 @@ import {
   Rocket,
   Ruler,
   Satellite,
-  Save,
   Scissors,
   Search,
   Settings,
@@ -96,6 +98,8 @@ import {
   Zap,
   ArrowRight,
   Loader2,
+  Minus, // Added for removing body fields
+  CornerRightDown, // Added for sub-inputs
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -128,10 +132,12 @@ interface Service {
 
 interface FormField {
   id: number;
-  type: "file" | "text" | "number" | "date" | "select";
+  type: "file" | "text" | "number" | "date" | "select" | "object"; // Added 'object' type for nested fields
   label: string;
   required: boolean;
   options?: string[];
+  children?: FormField[]; // Added for nested fields
+  expanded?: boolean; // Nouveau: pour gérer l'état d'expansion
 }
 
 interface FormData {
@@ -145,6 +151,7 @@ interface FormData {
   iconName: string;
   status: "active" | "inactive";
   gradient: string;
+  bodyStructure: FormField[];
 }
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -167,6 +174,203 @@ interface ModalProps {
   children: React.ReactNode;
   title: string;
 }
+
+const NestedField: React.FC<{
+  field: FormField;
+  onUpdate: (updatedField: FormField) => void;
+  onRemove: () => void;
+  onAddChild: (type: FormField["type"]) => void;
+  depth: number;
+}> = ({ field, onUpdate, onRemove, onAddChild, depth }) => {
+  const toggleExpand = () => {
+    onUpdate({ ...field, expanded: !field.expanded });
+  };
+
+  return (
+    <div className="mb-3 border border-gray-700 rounded-lg overflow-hidden">
+      <div
+        className={`flex items-center p-3 ${
+          depth === 0 ? "bg-gray-800" : "bg-gray-900"
+        }`}
+      >
+        <button
+          onClick={toggleExpand}
+          className="mr-2 text-gray-400 hover:text-white"
+        >
+          {field.type === "object" && field.children?.length ? (
+            field.expanded ? (
+              <ChevronDown size={16} />
+            ) : (
+              <ChevronRight size={16} />
+            )
+          ) : (
+            <span className="w-4 block"></span>
+          )}
+        </button>
+
+        <div className="flex-grow grid grid-cols-12 gap-2 items-center">
+          <div className="col-span-3">
+            <select
+              value={field.type}
+              onChange={(e) =>
+                onUpdate({
+                  ...field,
+                  type: e.target.value as FormField["type"],
+                })
+              }
+              className="w-full bg-gray-700 text-white rounded px-2 py-1 text-sm"
+            >
+              <option value="text">Texte</option>
+              <option value="number">Nombre</option>
+              <option value="file">Fichier</option>
+              <option value="date">Date</option>
+              <option value="select">Sélection</option>
+              <option value="object">Objet</option>
+            </select>
+          </div>
+
+          <div className="col-span-5">
+            <input
+              type="text"
+              placeholder="Nom du champ"
+              value={field.label}
+              onChange={(e) => onUpdate({ ...field, label: e.target.value })}
+              className="w-full bg-gray-700 text-white rounded px-2 py-1 text-sm"
+            />
+          </div>
+
+          <div className="col-span-2 flex items-center">
+            <input
+              type="checkbox"
+              checked={field.required}
+              onChange={(e) =>
+                onUpdate({ ...field, required: e.target.checked })
+              }
+              className="mr-1"
+            />
+            <span className="text-xs text-gray-300">Requis</span>
+          </div>
+
+          <div className="col-span-2 flex justify-end">
+            <button
+              onClick={onRemove}
+              className="text-red-500 hover:text-red-300"
+            >
+              <Minus size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {field.type === "select" && (
+        <div className="p-3 bg-gray-800 border-t border-gray-700">
+          <div className="flex items-center mb-2">
+            <span className="text-sm font-medium text-gray-300 mr-3">
+              Options:
+            </span>
+            <button
+              onClick={() =>
+                onUpdate({
+                  ...field,
+                  options: [...(field.options || []), ""],
+                })
+              }
+              className="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded"
+            >
+              + Ajouter
+            </button>
+          </div>
+
+          {field.options?.map((option, idx) => (
+            <div key={idx} className="flex items-center mb-2">
+              <input
+                value={option}
+                onChange={(e) => {
+                  const newOptions = [...(field.options || [])];
+                  newOptions[idx] = e.target.value;
+                  onUpdate({ ...field, options: newOptions });
+                }}
+                className="flex-grow bg-gray-700 text-white rounded px-2 py-1 text-sm mr-2"
+                placeholder={`Option ${idx + 1}`}
+              />
+              <button
+                onClick={() => {
+                  const newOptions = [...(field.options || [])];
+                  newOptions.splice(idx, 1);
+                  onUpdate({ ...field, options: newOptions });
+                }}
+                className="text-red-500 hover:text-red-300"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {field.type === "object" && field.expanded && (
+        <div className="p-3 bg-gray-900 border-t border-gray-800">
+          <div className="flex flex-wrap gap-2 mb-3">
+            <button
+              onClick={() => onAddChild("text")}
+              className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
+            >
+              <Plus size={12} className="mr-1" /> Texte
+            </button>
+            <button
+              onClick={() => onAddChild("number")}
+              className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
+            >
+              <Plus size={12} className="mr-1" /> Nombre
+            </button>
+            <button
+              onClick={() => onAddChild("object")}
+              className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
+            >
+              <Plus size={12} className="mr-1" /> Objet
+            </button>
+            {/* Ajouter d'autres types au besoin */}
+          </div>
+
+          {field.children?.map((child, index) => (
+            <div
+              key={child.id}
+              className="ml-4 border-l-2 border-gray-700 pl-3"
+            >
+              <NestedField
+                field={child}
+                onUpdate={(updatedChild) => {
+                  const newChildren = [...(field.children || [])];
+                  newChildren[index] = updatedChild;
+                  onUpdate({ ...field, children: newChildren });
+                }}
+                onRemove={() => {
+                  const newChildren = [...(field.children || [])];
+                  newChildren.splice(index, 1);
+                  onUpdate({ ...field, children: newChildren });
+                }}
+                onAddChild={(type) => {
+                  const newChild: FormField = {
+                    id: Date.now(),
+                    type,
+                    label: "",
+                    required: false,
+                    expanded: true,
+                  };
+                  onUpdate({
+                    ...field,
+                    children: [...(field.children || []), newChild],
+                  });
+                }}
+                depth={depth + 1}
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 // Liste des icônes disponibles
 const availableIcons = [
@@ -470,6 +674,7 @@ export default function AdminServicesPage() {
     iconName: "Settings",
     status: "active",
     gradient: "from-purple-500 to-pink-500",
+    bodyStructure: [], // Initialize bodyStructure
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [iconSearchTerm, setIconSearchTerm] = useState("");
@@ -479,6 +684,7 @@ export default function AdminServicesPage() {
   const [routes, setRoutes] = useState<string[]>([]);
   const [selectedRoute, setSelectedRoute] = useState("");
   const [host, setHost] = useState("");
+
   const handleAddService = () => {
     setIsModalOpen(true);
     setModalStep(1);
@@ -494,6 +700,7 @@ export default function AdminServicesPage() {
       iconName: "Settings",
       status: "active",
       gradient: "from-purple-500 to-pink-500",
+      bodyStructure: [], // Reset bodyStructure
     });
   };
 
@@ -577,6 +784,272 @@ export default function AdminServicesPage() {
     }));
   };
 
+  const addBodySelectOption = (
+    fieldId: number,
+    fields: FormField[]
+  ): FormField[] => {
+    return fields.map((field) => {
+      if (field.id === fieldId) {
+        return { ...field, options: [...(field.options || []), ""] };
+      }
+      if (field.children) {
+        return {
+          ...field,
+          children: addBodySelectOption(fieldId, field.children),
+        };
+      }
+      return field;
+    });
+  };
+
+  const updateBodySelectOption = (
+    fieldId: number,
+    optionIndex: number,
+    value: string,
+    fields: FormField[]
+  ): FormField[] => {
+    return fields.map((field) => {
+      if (field.id === fieldId) {
+        return {
+          ...field,
+          options: field.options?.map((opt, idx) =>
+            idx === optionIndex ? value : opt
+          ),
+        };
+      }
+      if (field.children) {
+        return {
+          ...field,
+          children: updateBodySelectOption(
+            fieldId,
+            optionIndex,
+            value,
+            field.children
+          ),
+        };
+      }
+      return field;
+    });
+  };
+
+  const removeBodySelectOption = (
+    fieldId: number,
+    optionIndex: number,
+    fields: FormField[]
+  ): FormField[] => {
+    return fields.map((field) => {
+      if (field.id === fieldId) {
+        return {
+          ...field,
+          options: field.options?.filter((_, idx) => idx !== optionIndex),
+        };
+      }
+      if (field.children) {
+        return {
+          ...field,
+          children: removeBodySelectOption(
+            fieldId,
+            optionIndex,
+            field.children
+          ),
+        };
+      }
+      return field;
+    });
+  };
+
+  const renderBodyField = (field: FormField, indentLevel: number = 0) => (
+    <div
+      key={field.id}
+      className={`flex items-start gap-2 mb-4 p-3 rounded-md border border-dashed border-gray-700 bg-gray-800 ${
+        indentLevel > 0 ? "ml-" + indentLevel * 4 : ""
+      }`}
+    >
+      <div className="flex-grow space-y-2">
+        <div className="flex items-center gap-2">
+          {indentLevel > 0 && (
+            <CornerRightDown className="w-4 h-4 text-gray-500" />
+          )}
+          <span className="text-sm font-medium text-white flex-shrink-0 w-24">
+            {getFieldIcon(field.type)} {field.type.toUpperCase()}
+          </span>
+          <Input
+            placeholder="Label du champ"
+            value={field.label}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                bodyStructure: updateBodyField(
+                  field.id,
+                  { label: e.target.value },
+                  prev.bodyStructure
+                ),
+              }))
+            }
+            className="flex-grow"
+          />
+          <label className="flex items-center gap-2 text-sm text-gray-400">
+            <input
+              type="checkbox"
+              checked={field.required}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  bodyStructure: updateBodyField(
+                    field.id,
+                    { required: e.target.checked },
+                    prev.bodyStructure
+                  ),
+                }))
+              }
+              className="form-checkbox text-purple-600"
+            />
+            Requis
+          </label>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() =>
+              setFormData((prev) => ({
+                ...prev,
+                bodyStructure: removeBodyField(field.id, prev.bodyStructure),
+              }))
+            }
+            className="flex-shrink-0"
+          >
+            <Minus className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {field.type === "select" && (
+          <div className="ml-8 space-y-2">
+            <h4 className="text-sm font-medium text-gray-300">Options:</h4>
+            {field.options?.map((option, idx) => (
+              <div key={idx} className="flex items-center gap-2">
+                <Input
+                  placeholder={`Option ${idx + 1}`}
+                  value={option}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      bodyStructure: updateBodySelectOption(
+                        field.id,
+                        idx,
+                        e.target.value,
+                        prev.bodyStructure
+                      ),
+                    }))
+                  }
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      bodyStructure: removeBodySelectOption(
+                        field.id,
+                        idx,
+                        prev.bodyStructure
+                      ),
+                    }))
+                  }
+                >
+                  <Minus className="w-4 h-4" />
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                setFormData((prev) => ({
+                  ...prev,
+                  bodyStructure: addBodySelectOption(
+                    field.id,
+                    prev.bodyStructure
+                  ),
+                }))
+              }
+            >
+              Ajouter une option
+            </Button>
+          </div>
+        )}
+
+        {field.type === "object" && (
+          <div className="ml-8 space-y-2 p-2 border-l border-gray-700">
+            <h4 className="text-sm font-medium text-gray-300 mb-2">
+              Sous-champs:
+            </h4>
+            {field.children?.map((childField) =>
+              renderBodyField(childField, indentLevel + 1)
+            )}
+            <div className="flex gap-2 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addBodyField("text", field.id)}
+              >
+                <Plus className="w-4 h-4 mr-2" /> Texte
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addBodyField("number", field.id)}
+              >
+                <Plus className="w-4 h-4 mr-2" /> Nombre
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => addBodyField("object", field.id)}
+              >
+                <Plus className="w-4 h-4 mr-2" /> Objet
+              </Button>
+              {/* Add other types as needed for sub-fields */}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const addBodyField = (type: FormField["type"]) => {
+    const newField: FormField = {
+      id: Date.now(),
+      type,
+      label: "",
+      required: false,
+      expanded: type === "object", // Auto-expand les objets
+    };
+
+    setFormData((prev) => ({
+      ...prev,
+      bodyStructure: [...prev.bodyStructure, newField],
+    }));
+  };
+
+  const updateBodyField = (index: number, updatedField: FormField) => {
+    setFormData((prev) => {
+      const newStructure = [...prev.bodyStructure];
+      newStructure[index] = updatedField;
+      return { ...prev, bodyStructure: newStructure };
+    });
+  };
+
+  const removeBodyField = (index: number) => {
+    setFormData((prev) => {
+      const newStructure = [...prev.bodyStructure];
+      newStructure.splice(index, 1);
+      return { ...prev, bodyStructure: newStructure };
+    });
+  };
+
   const handleSaveService = async () => {
     try {
       // Only handle manual services for now (as per requirements)
@@ -591,6 +1064,7 @@ export default function AdminServicesPage() {
           apiKey: formData.apiKey,
           apiKeyHeader: formData.apiKeyHeader,
           fields: formData.fields,
+          bodyStructure: formData.bodyStructure, // Include bodyStructure
         };
 
         await servicesApiMethods.createManualService(serviceData);
@@ -616,6 +1090,7 @@ export default function AdminServicesPage() {
           iconName: "Settings",
           status: "active",
           gradient: "from-purple-500 to-pink-500",
+          bodyStructure: [],
         });
 
         // Show success message
@@ -657,6 +1132,7 @@ export default function AdminServicesPage() {
             iconName: "Settings",
             status: "active",
             gradient: "from-purple-500 to-pink-500",
+            bodyStructure: [],
           });
         } else {
           toast.error(
@@ -748,6 +1224,8 @@ export default function AdminServicesPage() {
         return <Calendar className="w-4 h-4" />;
       case "select":
         return <ToggleLeft className="w-4 h-4" />;
+      case "object":
+        return <Code className="w-4 h-4" />;
       default:
         return <Type className="w-4 h-4" />;
     }
@@ -973,7 +1451,7 @@ export default function AdminServicesPage() {
                       Description
                     </label>
                     <Textarea
-                      placeholder="Décrivez brièvement ce que fait le service..."
+                      placeholder="Décrivez votre service en quelques mots..."
                       value={formData.description}
                       onChange={(e) =>
                         setFormData((prev) => ({
@@ -984,140 +1462,59 @@ export default function AdminServicesPage() {
                     />
                   </div>
 
-                  {/* Endpoint URL - only for manual services */}
-                  {serviceType === "manual" && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        URL de l'endpoint
-                      </label>
-                      <Input
-                        placeholder="https://api.example.com/llm-endpoint"
-                        value={formData.endpointUrl}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            endpointUrl: e.target.value,
-                          }))
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        URL de l'API LLM où envoyer les données du formulaire
-                      </p>
-                    </div>
-                  )}
-
-                  {/* API Key - only for manual services */}
-                  {serviceType === "manual" && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        Clé API
-                      </label>
-                      <Input
-                        type="password"
-                        placeholder="sk-..."
-                        value={formData.apiKey}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            apiKey: e.target.value,
-                          }))
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Clé d'API pour l'authentification avec le service LLM
-                      </p>
-                    </div>
-                  )}
-
-                  {/* API Key Header - only for manual services */}
-                  {serviceType === "manual" && (
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        En-tête de la clé API
-                      </label>
-                      <Input
-                        placeholder="Authorization"
-                        value={formData.apiKeyHeader}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            apiKeyHeader: e.target.value,
-                          }))
-                        }
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Nom de l'en-tête HTTP pour envoyer la clé d'API (ex:
-                        Authorization, X-API-Key)
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Sélection de l'icône */}
+                  {/* Icon Selection */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
                       Icône du service
                     </label>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-12 h-12 rounded-lg bg-gradient-to-r ${formData.gradient} flex items-center justify-center text-white`}
-                        >
-                          {React.createElement(
-                            availableIcons.find(
-                              (icon) => icon.name === formData.iconName
-                            )?.icon || Settings,
-                            { className: "w-6 h-6" }
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <Input
-                            placeholder="Rechercher une icône..."
-                            value={iconSearchTerm}
-                            onChange={(e) => setIconSearchTerm(e.target.value)}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-8 gap-2 max-h-40 overflow-y-auto border border-border rounded-md p-3">
-                        {filteredIcons.map((iconData) => {
-                          const IconComponent = iconData.icon;
-                          return (
-                            <button
-                              key={iconData.name}
-                              type="button"
-                              className={`p-2 rounded-md border-2 transition-all hover:bg-accent ${
-                                formData.iconName === iconData.name
-                                  ? "border-purple-500 bg-accent"
-                                  : "border-transparent"
-                              }`}
-                              onClick={() =>
-                                setFormData((prev) => ({
-                                  ...prev,
-                                  iconName: iconData.name,
-                                }))
-                              }
-                              title={iconData.label}
-                            >
-                              <IconComponent className="w-5 h-5" />
-                            </button>
-                          );
-                        })}
-                      </div>
+                    <Input
+                      placeholder="Rechercher une icône..."
+                      value={iconSearchTerm}
+                      onChange={(e) => setIconSearchTerm(e.target.value)}
+                      className="mb-3"
+                    />
+                    <div className="grid grid-cols-6 gap-3 max-h-48 overflow-y-auto custom-scrollbar p-2 rounded-md border border-input">
+                      {filteredIcons.map((icon) => {
+                        const IconComponent = icon.icon;
+                        return (
+                          <div
+                            key={icon.name}
+                            className={`flex flex-col items-center p-2 rounded-md cursor-pointer transition-colors ${
+                              formData.iconName === icon.name
+                                ? "bg-primary/20 text-primary"
+                                : "hover:bg-accent/50"
+                            }`}
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                iconName: icon.name,
+                              }))
+                            }
+                          >
+                            <IconComponent className="w-6 h-6 mb-1" />
+                            <span className="text-xs text-center truncate w-full">
+                              {icon.label}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  {/* Sélection du gradient */}
+                  {/* Gradient Selection */}
                   <div>
                     <label className="block text-sm font-medium mb-2">
-                      Couleur du service
+                      Couleur du dégradé
                     </label>
                     <div className="grid grid-cols-4 gap-3">
                       {availableGradients.map((gradient) => (
-                        <button
-                          key={gradient.value}
-                          type="button"
-                          className={`p-3 rounded-lg border-2 transition-all ${
+                        <div
+                          key={gradient.name}
+                          className={`h-12 rounded-md cursor-pointer border-2 ${
+                            gradient.preview
+                          } ${
                             formData.gradient === gradient.value
-                              ? "border-white ring-2 ring-purple-500"
+                              ? "border-primary"
                               : "border-transparent"
                           }`}
                           onClick={() =>
@@ -1126,321 +1523,357 @@ export default function AdminServicesPage() {
                               gradient: gradient.value,
                             }))
                           }
-                          title={gradient.name}
-                        >
-                          <div
-                            className={`w-full h-8 rounded ${gradient.preview}`}
-                          ></div>
-                        </button>
+                        ></div>
                       ))}
                     </div>
                   </div>
 
-                  {/* Statut du service */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Statut du service
-                    </label>
-                    <div className="flex gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="status"
-                          value="active"
-                          checked={formData.status === "active"}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              status: e.target.value as "active" | "inactive",
-                            }))
-                          }
-                          className="text-green-500"
-                        />
-                        <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                          Actif
-                        </span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="status"
-                          value="inactive"
-                          checked={formData.status === "inactive"}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              status: e.target.value as "active" | "inactive",
-                            }))
-                          }
-                          className="text-red-500"
-                        />
-                        <span className="flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                          Inactif
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {serviceType === "automatic" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">
-                        URL du Swagger
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="https://api.example.com/swagger.json"
-                          value={formData.swaggerUrl}
-                          onChange={(e) => {
-                            setFormData((prev) => ({
-                              ...prev,
-                              swaggerUrl: e.target.value,
-                            }));
-                            setIsSwaggerGood(false);
-                          }}
-                        />
-                        <Button
-                          variant="outline"
-                          // mettre en rouge si le swagger n'est pas bon
-                          className={
-                            isSwaggerGood
-                              ? "border-green-600 bg-green-600 hover:bg-green-600"
-                              : "border-red-600 bg-red-600 hover:bg-red-600"
-                          }
-                          onClick={() => {
-                            if (formData.swaggerUrl) {
-                              handleAnalyzeSwagger();
+                  {serviceType === "automatic" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          URL du Swagger
+                        </label>
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="Ex: https://api.example.com/swagger.json"
+                            value={formData.swaggerUrl}
+                            onChange={(e) =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                swaggerUrl: e.target.value,
+                              }))
                             }
-                          }}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </div>
-                      {isSwaggerGood === false && numberOfRoutes > 0 && (
-                        <div className="mt-3 space-y-2">
-                          <p className="text-xs text-muted-foreground">
-                            Veuillez sélectionner un endpoint parmi les{" "}
-                            {numberOfRoutes} disponibles :
-                          </p>
-                          <select
-                            value={selectedRoute}
-                            onChange={(e) => handleRouteSelect(e.target.value)}
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          />
+                          <Button
+                            onClick={handleAnalyzeSwagger}
+                            disabled={isLoading}
                           >
-                            <option value="">Sélectionnez une route...</option>
-                            {routes.map((route, index) => (
-                              <option key={index} value={route}>
-                                {route}
-                              </option>
-                            ))}
-                          </select>
+                            {isLoading ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <Search className="mr-2 h-4 w-4" />
+                            )}
+                            Analyser
+                          </Button>
                         </div>
-                      )}
-
-                      <p className="text-xs text-muted-foreground mt-1">
-                        L'IA analysera automatiquement le swagger pour générer
-                        le formulaire
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {serviceType === "manual" && (
-                  <div className="space-y-4 sm:space-y-6">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
-                      <h3 className="text-lg sm:text-xl font-semibold">
-                        Champs du formulaire
-                      </h3>
-
-                      {/* Boutons d'ajout de champs - responsive */}
-                      <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:justify-end">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addField("file")}
-                          className="px-3 sm:px-3 text-xs sm:text-sm"
-                        >
-                          <Upload className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
-                          <span>Fichier</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addField("text")}
-                          className="px-3 sm:px-3 text-xs sm:text-sm"
-                        >
-                          <Type className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
-                          <span>Texte</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addField("number")}
-                          className="px-3 sm:px-3 text-xs sm:text-sm"
-                        >
-                          <Hash className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
-                          <span>Nombre</span>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addField("select")}
-                          className="px-3 sm:px-3 text-xs sm:text-sm"
-                        >
-                          <ToggleLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 flex-shrink-0" />
-                          <span>Liste</span>
-                        </Button>
+                        {isSwaggerGood && (
+                          <p className="text-green-500 text-sm mt-2">
+                            Swagger valide ! Vous pouvez créer le service.
+                          </p>
+                        )}
+                        {numberOfRoutes > 0 && (
+                          <div className="mt-4">
+                            <label className="block text-sm font-medium mb-2">
+                              Sélectionner un endpoint
+                            </label>
+                            <select
+                              value={selectedRoute}
+                              onChange={(e) =>
+                                handleRouteSelect(e.target.value)
+                              }
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              <option value="">Choisissez un endpoint</option>
+                              {routes.map((route) => (
+                                <option key={route} value={route}>
+                                  {route}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
                       </div>
-                    </div>
+                    </>
+                  )}
 
-                    <div className="space-y-3 sm:space-y-4 max-h-60 sm:max-h-80 overflow-y-auto">
-                      {formData.fields.map((field) => (
-                        <Card key={field.id} className="p-3 sm:p-4">
-                          <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-                            {/* Icône du champ */}
-                            <div className="flex items-center justify-center w-8 h-8 rounded bg-muted flex-shrink-0 self-start sm:self-auto">
-                              {getFieldIcon(field.type)}
+                  {serviceType === "manual" && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          URL de l'Endpoint
+                        </label>
+                        <Input
+                          placeholder="Ex: https://api.example.com/convert"
+                          value={formData.endpointUrl}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              endpointUrl: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          Clé API (Optionnel)
+                        </label>
+                        <Input
+                          placeholder="Votre clé API"
+                          value={formData.apiKey}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              apiKey: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">
+                          En-tête de la clé API (Optionnel)
+                        </label>
+                        <Input
+                          placeholder="Ex: Authorization"
+                          value={formData.apiKeyHeader}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              apiKeyHeader: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+
+                      {/* Dynamic Form Fields for Query Parameters/Headers */}
+                      <div className="mt-8">
+                        <h3 className="text-lg font-semibold mb-4">
+                          Champs du formulaire
+                        </h3>
+                        {formData.fields.map((field) => (
+                          <div
+                            key={field.id}
+                            className="flex items-end gap-2 mb-4"
+                          >
+                            <div className="flex-grow space-y-2">
+                              <label className="block text-sm font-medium text-muted-foreground">
+                                Type de champ
+                              </label>
+                              <select
+                                value={field.type}
+                                onChange={(e) =>
+                                  updateField(field.id, {
+                                    type: e.target.value as FormField["type"],
+                                  })
+                                }
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <option value="text">Texte</option>
+                                <option value="number">Numérique</option>
+                                <option value="file">Fichier</option>
+                                <option value="date">Date</option>
+                                <option value="select">Sélection</option>
+                              </select>
                             </div>
-
-                            {/* Contenu principal du champ */}
-                            <div className="flex-1 space-y-3">
-                              {/* Input Label */}
-                              <div className="grid grid-cols-1 gap-2">
-                                <Input
-                                  placeholder="Label du champ (ex: Fichier à traiter)"
-                                  value={field.label}
-                                  onChange={(e) =>
-                                    updateField(field.id, {
-                                      label: e.target.value,
-                                    })
-                                  }
-                                  className="text-sm sm:text-base"
-                                />
-                              </div>
-
-                              {/* Options pour les champs select */}
-                              {field.type === "select" && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between">
-                                    <label className="text-xs sm:text-sm font-medium">
-                                      Options
-                                    </label>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => addSelectOption(field.id)}
-                                      className="h-7 sm:h-8 px-2 sm:px-3"
-                                    >
-                                      <Plus className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-
-                                  <div className="space-y-2">
-                                    {field.options?.map((option, idx) => (
-                                      <div key={idx} className="flex gap-2">
-                                        <Input
-                                          placeholder={`Option ${idx + 1}`}
-                                          value={option}
-                                          onChange={(e) =>
-                                            updateSelectOption(
-                                              field.id,
-                                              idx,
-                                              e.target.value
-                                            )
-                                          }
-                                          className="text-sm sm:text-base"
-                                        />
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() =>
-                                            removeSelectOption(field.id, idx)
-                                          }
-                                          className="h-9 sm:h-10 w-9 sm:w-10 p-0 flex-shrink-0"
-                                        >
-                                          <X className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        </Button>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-
-                              {/* Checkbox "Champ obligatoire" */}
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  id={`required-${field.id}`}
-                                  checked={field.required}
-                                  onChange={(e) =>
-                                    updateField(field.id, {
-                                      required: e.target.checked,
-                                    })
-                                  }
-                                  className="rounded w-4 h-4"
-                                />
-                                <label
-                                  htmlFor={`required-${field.id}`}
-                                  className="text-xs sm:text-sm select-none"
-                                >
-                                  Champ obligatoire
-                                </label>
-                              </div>
+                            <div className="flex-grow space-y-2">
+                              <label className="block text-sm font-medium text-muted-foreground">
+                                Label
+                              </label>
+                              <Input
+                                placeholder="Nom du champ"
+                                value={field.label}
+                                onChange={(e) =>
+                                  updateField(field.id, {
+                                    label: e.target.value,
+                                  })
+                                }
+                              />
                             </div>
-
-                            {/* Bouton de suppression */}
+                            <label className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                              <input
+                                type="checkbox"
+                                checked={field.required}
+                                onChange={(e) =>
+                                  updateField(field.id, {
+                                    required: e.target.checked,
+                                  })
+                                }
+                                className="form-checkbox"
+                              />
+                              Requis
+                            </label>
                             <Button
-                              variant="ghost"
+                              type="button"
+                              variant="destructive"
                               size="sm"
                               onClick={() => removeField(field.id)}
-                              className="h-8 w-8 sm:h-9 sm:w-9 p-0 flex-shrink-0 self-start"
+                              className="mb-3"
                             >
-                              <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                              <Minus className="w-4 h-4" />
                             </Button>
+                            {field.type === "select" && (
+                              <div className="w-full flex flex-col gap-2 mt-2">
+                                <h4 className="text-sm font-medium text-muted-foreground">
+                                  Options de sélection:
+                                </h4>
+                                {field.options?.map((option, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center gap-2"
+                                  >
+                                    <Input
+                                      value={option}
+                                      onChange={(e) =>
+                                        updateSelectOption(
+                                          field.id,
+                                          idx,
+                                          e.target.value
+                                        )
+                                      }
+                                      placeholder={`Option ${idx + 1}`}
+                                    />
+                                    <Button
+                                      type="button"
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() =>
+                                        removeSelectOption(field.id, idx)
+                                      }
+                                    >
+                                      <Minus className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                ))}
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={() => addSelectOption(field.id)}
+                                >
+                                  Ajouter une option
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                        </Card>
-                      ))}
-
-                      {/* Message vide */}
-                      {formData.fields.length === 0 && (
-                        <div className="text-center py-6 sm:py-8 text-muted-foreground px-4">
-                          <p className="text-sm sm:text-base">
-                            Aucun champ ajouté. Utilisez les boutons ci-dessus
-                            pour ajouter des champs.
-                          </p>
+                        ))}
+                        <div className="flex flex-wrap gap-3 mt-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addField("text")}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Texte
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addField("number")}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Nombre
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addField("file")}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Fichier
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addField("date")}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Date
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addField("select")}
+                          >
+                            <Plus className="w-4 h-4 mr-2" /> Sélection
+                          </Button>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                      </div>
+                      <div className="mt-8">
+                        <h3 className="text-lg font-semibold mb-4 flex items-center">
+                          <Code className="mr-2" />
+                          Structure du corps de la requête (Body)
+                        </h3>
 
-                <div className="flex justify-end gap-3 pt-6 border-t border-border">
-                  <Button variant="outline" onClick={() => setModalStep(1)}>
-                    Retour
-                  </Button>
+                        {formData.bodyStructure.length > 0 ? (
+                          formData.bodyStructure.map((field, index) => (
+                            <NestedField
+                              key={field.id}
+                              field={field}
+                              onUpdate={(updatedField) =>
+                                updateBodyField(index, updatedField)
+                              }
+                              onRemove={() => removeBodyField(index)}
+                              onAddChild={(type) => {
+                                const newField: FormField = {
+                                  id: Date.now(),
+                                  type,
+                                  label: "",
+                                  required: false,
+                                  expanded: true,
+                                };
+
+                                const updatedField = {
+                                  ...field,
+                                  children: [
+                                    ...(field.children || []),
+                                    newField,
+                                  ],
+                                };
+
+                                updateBodyField(index, updatedField);
+                              }}
+                              depth={0}
+                            />
+                          ))
+                        ) : (
+                          <div className="text-gray-500 text-center py-6 border border-dashed rounded-lg">
+                            Aucun champ défini
+                          </div>
+                        )}
+
+                        <div className="flex flex-wrap gap-3 mt-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addBodyField("text")}
+                            className="flex items-center"
+                          >
+                            <Plus className="mr-2 h-4 w-4" /> Champ Texte
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addBodyField("number")}
+                            className="flex items-center"
+                          >
+                            <Plus className="mr-2 h-4 w-4" /> Champ Numérique
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addBodyField("file")}
+                            className="flex items-center"
+                          >
+                            <Plus className="mr-2 h-4 w-4" /> Champ Fichier
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addBodyField("object")}
+                            className="flex items-center"
+                          >
+                            <Plus className="mr-2 h-4 w-4" /> Objet Imbriqué
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
                   <Button
-                    onClick={handleSaveService}
-                    disabled={
-                      !formData.title ||
-                      !formData.description ||
-                      (serviceType === "automatic" &&
-                        (!formData.swaggerUrl ||
-                          (numberOfRoutes > 0 && !selectedRoute) ||
-                          (numberOfRoutes === 0 && !isSwaggerGood))) ||
-                      isLoading
-                    }
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                    variant="outline"
+                    onClick={() => setIsModalOpen(false)}
                   >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="w-4 h-4 mr-2" />
-                    )}
-                    Enregistrer le service
+                    Annuler
                   </Button>
+                  <Button onClick={handleSaveService}>Créer le service</Button>
                 </div>
               </div>
             )}
