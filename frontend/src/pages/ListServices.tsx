@@ -1025,25 +1025,7 @@ export default function AdminServicesPage() {
                     />
                   </div>
 
-                  {/* Model ID */}
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      ID du modèle d'IA
-                    </label>
-                    <Input
-                      placeholder="Ex: gpt-4, claude-3-sonnet, llama-2-70b"
-                      value={formData.modelId}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          modelId: e.target.value,
-                        }))
-                      }
-                    />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Identifiant du modèle d'IA à utiliser pour ce service
-                    </p>
-                  </div>                  {/* Manual service configuration */}
+                  {/* Manual service configuration */}
                   {serviceType === "manual" && (
                     <div className="space-y-4">
                       <p className="text-sm text-muted-foreground">
@@ -1132,7 +1114,7 @@ export default function AdminServicesPage() {
                           </Button>
                         </div>
                         
-                        {availableModels.length > 0 && (
+                        {availableModels.length > 0 ? (
                           <select
                             className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
                             value={formData.modelId}
@@ -1150,25 +1132,16 @@ export default function AdminServicesPage() {
                               </option>
                             ))}
                           </select>
-                        )}
-                        
-                        {availableModels.length === 0 && (
-                          <Input
-                            placeholder="Ex: gpt-4, claude-3-sonnet, llama-2-70b"
-                            value={formData.modelId}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                modelId: e.target.value,
-                              }))
-                            }
-                          />
+                        ) : (
+                          <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md border border-dashed">
+                            Cliquez sur "Récupérer les modèles" pour charger les modèles disponibles
+                          </div>
                         )}
                         
                         <p className="text-xs text-muted-foreground mt-1">
                           {availableModels.length > 0
-                            ? "Sélectionnez un modèle dans la liste ou cliquez sur 'Récupérer les modèles' pour actualiser"
-                            : "Cliquez sur 'Récupérer les modèles' pour charger les modèles disponibles depuis votre API"}
+                            ? "Sélectionnez un modèle dans la liste"
+                            : "Vous devez récupérer les modèles avant de pouvoir créer le service"}
                         </p>
                       </div>
                     </div>

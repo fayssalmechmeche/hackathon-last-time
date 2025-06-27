@@ -172,11 +172,6 @@ export default function ServiceFormPage() {
 
           {/* Form */}
           <Card className="bg-card border-border max-w-4xl mx-auto">
-            <CardHeader>
-              <CardTitle className="text-foreground">
-                Configuration du service
-              </CardTitle>
-            </CardHeader>
             <CardContent>
               <div className="rjsf-form">
                 <Form
@@ -234,6 +229,9 @@ export default function ServiceFormPage() {
 
         {/* Custom styles for RJSF */}
         <style>{`
+          .rjsf-form legend#root__title {
+            display: none;
+          }
           .rjsf-form .form-group {
             margin-bottom: 1.5rem;
           }

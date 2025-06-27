@@ -708,7 +708,7 @@ export default function ManageServicesPage() {
                     </Button>
                   </div>
                   
-                  {availableModels.length > 0 && (
+                  {availableModels.length > 0 ? (
                     <select
                       className="w-full bg-muted border border-border rounded-md px-3 py-2 text-foreground"
                       value={editFormData.modelId}
@@ -726,25 +726,16 @@ export default function ManageServicesPage() {
                         </option>
                       ))}
                     </select>
-                  )}
-                  
-                  {availableModels.length === 0 && (
-                    <Input
-                      placeholder="Ex: gpt-4, claude-3-sonnet, llama-2-70b"
-                      value={editFormData.modelId}
-                      onChange={(e) =>
-                        setEditFormData((prev) => ({
-                          ...prev,
-                          modelId: e.target.value,
-                        }))
-                      }
-                    />
+                  ) : (
+                    <div className="text-sm text-muted-foreground p-3 bg-muted/50 rounded-md border border-dashed">
+                      Cliquez sur "Récupérer les modèles" pour charger les modèles disponibles
+                    </div>
                   )}
                   
                   <p className="text-xs text-muted-foreground mt-1">
                     {availableModels.length > 0
-                      ? "Sélectionnez un modèle dans la liste ou cliquez sur 'Récupérer les modèles' pour actualiser"
-                      : "Cliquez sur 'Récupérer les modèles' pour charger les modèles disponibles depuis votre API"}
+                      ? "Sélectionnez un modèle dans la liste"
+                      : "Vous devez récupérer les modèles avant de pouvoir mettre à jour le service"}
                   </p>
                 </div>
               </div>
