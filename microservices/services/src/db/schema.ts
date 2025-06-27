@@ -28,7 +28,7 @@ export type ServiceDocumentUpdate = Partial<
 
 export interface FormField {
   id: number;
-  type: "file" | "text" | "number" | "date" | "select";
+  type: "file" | "text" | "number" | "date" | "select" | "array";
   label: string;
   required: boolean;
   options?: string[];
@@ -37,11 +37,11 @@ export interface FormField {
 
 export interface BodyField {
   id: number;
-  type: "file" | "text" | "number" | "date" | "select" | "object";
+  type: "file" | "text" | "number" | "date" | "select" | "object" | "array";
   label: string;
   required: boolean;
   options?: string[];
-  children?: BodyField[]; // Pour les objets imbriqués
+  children?: BodyField[]; // Pour les objets imbriqués et éléments du tableau
   expanded?: boolean;
 }
 

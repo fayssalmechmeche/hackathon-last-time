@@ -1,4 +1,8 @@
-import type { FormField, GeneratedJSONSchema } from "../db/schema.js";
+import type {
+  FormField,
+  BodyField,
+  GeneratedJSONSchema,
+} from "../db/schema.js";
 
 export function generateJSONSchemaFromFields(
   title: string,
@@ -9,7 +13,7 @@ export function generateJSONSchemaFromFields(
 
   fields.forEach((field) => {
     const fieldName = field.label.toLowerCase().replace(/\s+/g, "_");
-    
+
     // Build the property definition based on field type
     switch (field.type) {
       case "text":
@@ -18,14 +22,14 @@ export function generateJSONSchemaFromFields(
           title: field.label,
         };
         break;
-      
+
       case "number":
         properties[fieldName] = {
           type: "number",
           title: field.label,
         };
         break;
-      
+
       case "date":
         properties[fieldName] = {
           type: "string",
@@ -33,7 +37,7 @@ export function generateJSONSchemaFromFields(
           title: field.label,
         };
         break;
-      
+
       case "select":
         properties[fieldName] = {
           type: "string",
@@ -41,7 +45,7 @@ export function generateJSONSchemaFromFields(
           enum: field.options || [],
         };
         break;
-      
+
       case "file":
         properties[fieldName] = {
           type: "string",
@@ -49,7 +53,7 @@ export function generateJSONSchemaFromFields(
           title: field.label,
         };
         break;
-      
+
       default:
         properties[fieldName] = {
           type: "string",

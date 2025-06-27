@@ -30,7 +30,7 @@ export interface CreateManualServiceRequest {
   apiKeyHeader: string;
   fields: Array<{
     id: number;
-    type: "file" | "text" | "number" | "date" | "select";
+    type: "file" | "text" | "number" | "date" | "select" | "array";
     label: string;
     required: boolean;
     options?: string[];
@@ -38,13 +38,13 @@ export interface CreateManualServiceRequest {
   }>;
   bodyStructure?: Array<{
     id: number;
-    type: "file" | "text" | "number" | "date" | "select" | "object";
+    type: "file" | "text" | "number" | "date" | "select" | "object" | "array";
     label: string;
     required: boolean;
     options?: string[];
     children?: Array<{
       id: number;
-      type: "file" | "text" | "number" | "date" | "select" | "object";
+      type: "file" | "text" | "number" | "date" | "select" | "object" | "array";
       label: string;
       required: boolean;
       options?: string[];
@@ -93,7 +93,7 @@ export interface ServiceResponse {
   createdBy: string;
   fields?: Array<{
     id: number;
-    type: "file" | "text" | "number" | "date" | "select";
+    type: "file" | "text" | "number" | "date" | "select" | "array";
     label: string;
     required: boolean;
     options?: string[];
@@ -101,13 +101,13 @@ export interface ServiceResponse {
   }>;
   bodyStructure?: Array<{
     id: number;
-    type: "file" | "text" | "number" | "date" | "select" | "object";
+    type: "file" | "text" | "number" | "date" | "select" | "object" | "array";
     label: string;
     required: boolean;
     options?: string[];
     children?: Array<{
       id: number;
-      type: "file" | "text" | "number" | "date" | "select" | "object";
+      type: "file" | "text" | "number" | "date" | "select" | "object" | "array";
       label: string;
       required: boolean;
       options?: string[];

@@ -250,6 +250,15 @@ function processFieldValue(value: any, formField: any, bodyField: any): any {
       return value;
     case "select":
       return value;
+    case "array":
+      // Handle array values - expect comma-separated string or already parsed array
+      if (typeof value === "string") {
+        return value.split(",").map((item) => item.trim());
+      }
+      return Array.isArray(value) ? value : [value];
+    case "object":
+      // For objects, value should already be an object
+      return typeof value === "object" ? value : {};
     default:
       return value;
   }
@@ -257,6 +266,7 @@ function processFieldValue(value: any, formField: any, bodyField: any): any {
 
 /**
  * Set a nested value in an object using dot notation
+ * Handles arrays and objects appropriately
  */
 function setNestedValue(obj: any, path: string, value: any): void {
   const keys = path.split(".");
@@ -264,13 +274,19 @@ function setNestedValue(obj: any, path: string, value: any): void {
 
   for (let i = 0; i < keys.length - 1; i++) {
     const key = keys[i];
-    if (!(key in current) || typeof current[key] !== "object") {
+    if (!(key in current)) {
+      // Determine if next level should be array or object
+      const nextKey = keys[i + 1];
+      const isArrayIndex = /^\d+$/.test(nextKey);
+      current[key] = isArrayIndex ? [] : {};
+    } else if (typeof current[key] !== "object") {
       current[key] = {};
     }
     current = current[key];
   }
 
-  current[keys[keys.length - 1]] = value;
+  const finalKey = keys[keys.length - 1];
+  current[finalKey] = value;
 }
 
 /**

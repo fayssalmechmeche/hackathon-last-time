@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const FormFieldSchema = z.object({
   id: z.number(),
-  type: z.enum(["file", "text", "number", "date", "select"]),
+  type: z.enum(["file", "text", "number", "date", "select", "array"]),
   label: z.string().min(1),
   required: z.boolean(),
   options: z.array(z.string()).optional(),
@@ -12,7 +12,15 @@ export const FormFieldSchema = z.object({
 export const BodyFieldSchema: z.ZodType<any> = z.lazy(() =>
   z.object({
     id: z.number(),
-    type: z.enum(["file", "text", "number", "date", "select", "object"]),
+    type: z.enum([
+      "file",
+      "text",
+      "number",
+      "date",
+      "select",
+      "object",
+      "array",
+    ]),
     label: z.string().min(1),
     required: z.boolean(),
     options: z.array(z.string()).optional(),

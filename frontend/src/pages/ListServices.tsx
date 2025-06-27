@@ -125,7 +125,7 @@ interface Service {
 
 interface FormField {
   id: number;
-  type: "file" | "text" | "number" | "date" | "select" | "object"; // Added 'object' type for nested fields
+  type: "file" | "text" | "number" | "date" | "select" | "object" | "array"; // Added 'array' type for arrays
   label: string;
   required: boolean;
   options?: string[];
@@ -212,7 +212,8 @@ const NestedField: React.FC<{
           onClick={toggleExpand}
           className="mr-2 text-gray-400 hover:text-white"
         >
-          {field.type === "object" && field.children?.length ? (
+          {(field.type === "object" || field.type === "array") &&
+          field.children?.length ? (
             field.expanded ? (
               <ChevronDown size={16} />
             ) : (
@@ -241,6 +242,7 @@ const NestedField: React.FC<{
               <option value="date">Date</option>
               <option value="select">Sélection</option>
               <option value="object">Objet</option>
+              <option value="array">Tableau</option>
             </select>
           </div>
 
@@ -353,68 +355,82 @@ const NestedField: React.FC<{
         </div>
       )}
 
-      {field.type === "object" && field.expanded && (
-        <div className="p-3 bg-gray-900 border-t border-gray-800">
-          <div className="flex flex-wrap gap-2 mb-3">
-            <button
-              onClick={() => onAddChild("text")}
-              className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
-            >
-              <Plus size={12} className="mr-1" /> Texte
-            </button>
-            <button
-              onClick={() => onAddChild("number")}
-              className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
-            >
-              <Plus size={12} className="mr-1" /> Nombre
-            </button>
-            <button
-              onClick={() => onAddChild("object")}
-              className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
-            >
-              <Plus size={12} className="mr-1" /> Objet
-            </button>
-            {/* Ajouter d'autres types au besoin */}
-          </div>
-
-          {field.children?.map((child, index) => (
-            <div
-              key={child.id}
-              className="ml-4 border-l-2 border-gray-700 pl-3"
-            >
-              <NestedField
-                field={child}
-                onUpdate={(updatedChild) => {
-                  const newChildren = [...(field.children || [])];
-                  newChildren[index] = updatedChild;
-                  onUpdate({ ...field, children: newChildren });
-                }}
-                onRemove={() => {
-                  const newChildren = [...(field.children || [])];
-                  newChildren.splice(index, 1);
-                  onUpdate({ ...field, children: newChildren });
-                }}
-                onAddChild={(type) => {
-                  const newChild: FormField = {
-                    id: Date.now(),
-                    type,
-                    label: "",
-                    required: false,
-                    expanded: true,
-                  };
-                  onUpdate({
-                    ...field,
-                    children: [...(field.children || []), newChild],
-                  });
-                }}
-                depth={depth + 1}
-                isLinked={isBodyFieldLinked(child.id, formFields)}
-                formFields={formFields}
-              />
+      {(field.type === "object" || field.type === "array") &&
+        field.expanded && (
+          <div className="p-3 bg-gray-900 border-t border-gray-800">
+            <div className="flex items-center mb-3">
+              <span className="text-sm text-gray-300 mr-3">
+                {field.type === "array"
+                  ? "Éléments du tableau:"
+                  : "Propriétés de l'objet:"}
+              </span>
             </div>
-          ))}
-        </div>
-      )}
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button
+                onClick={() => onAddChild("text")}
+                className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
+              >
+                <Plus size={12} className="mr-1" /> Texte
+              </button>
+              <button
+                onClick={() => onAddChild("number")}
+                className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
+              >
+                <Plus size={12} className="mr-1" /> Nombre
+              </button>
+              <button
+                onClick={() => onAddChild("object")}
+                className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
+              >
+                <Plus size={12} className="mr-1" /> Objet
+              </button>
+              <button
+                onClick={() => onAddChild("array")}
+                className="text-xs bg-gray-800 hover:bg-gray-700 text-white px-2 py-1 rounded flex items-center"
+              >
+                <Plus size={12} className="mr-1" /> Tableau
+              </button>
+              {/* Ajouter d'autres types au besoin */}
+            </div>
+
+            {field.children?.map((child, index) => (
+              <div
+                key={child.id}
+                className="ml-4 border-l-2 border-gray-700 pl-3"
+              >
+                <NestedField
+                  field={child}
+                  onUpdate={(updatedChild) => {
+                    const newChildren = [...(field.children || [])];
+                    newChildren[index] = updatedChild;
+                    onUpdate({ ...field, children: newChildren });
+                  }}
+                  onRemove={() => {
+                    const newChildren = [...(field.children || [])];
+                    newChildren.splice(index, 1);
+                    onUpdate({ ...field, children: newChildren });
+                  }}
+                  onAddChild={(type) => {
+                    const newChild: FormField = {
+                      id: Date.now(),
+                      type,
+                      label: "",
+                      required: false,
+                      expanded: true,
+                    };
+                    onUpdate({
+                      ...field,
+                      children: [...(field.children || []), newChild],
+                    });
+                  }}
+                  depth={depth + 1}
+                  isLinked={isBodyFieldLinked(child.id, formFields)}
+                  formFields={formFields}
+                />
+              </div>
+            ))}
+          </div>
+        )}
     </div>
   );
 };
@@ -1847,6 +1863,14 @@ export default function AdminServicesPage() {
                             className="flex items-center"
                           >
                             <Plus className="mr-2 h-4 w-4" /> Objet Imbriqué
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => addBodyField("array")}
+                            className="flex items-center"
+                          >
+                            <Plus className="mr-2 h-4 w-4" /> Tableau
                           </Button>
                         </div>
                       </div>
