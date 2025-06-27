@@ -28,6 +28,7 @@ export interface CreateManualServiceRequest {
   endpointUrl: string;
   apiKey: string;
   apiKeyHeader: string;
+  modelId: string;
   fields: Array<{
     id: number;
     type: "file" | "text" | "number" | "date" | "select";
@@ -56,6 +57,7 @@ export interface UpdateServiceRequest {
   endpointUrl?: string;
   apiKey?: string;
   apiKeyHeader?: string;
+  modelId?: string;
   jsonSchema?: object;
 }
 
@@ -71,6 +73,7 @@ export interface ServiceResponse {
   endpointUrl?: string;
   apiKey?: string;
   apiKeyHeader?: string;
+  modelId?: string;
   jsonSchema?: object;
   createdAt: string;
   updatedAt: string;

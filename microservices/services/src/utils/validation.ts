@@ -17,6 +17,7 @@ export const CreateManualServiceSchema = z.object({
   endpointUrl: z.string().url("Invalid endpoint URL"),
   apiKey: z.string().min(1, "API key is required"),
   apiKeyHeader: z.string().min(1, "API key header is required"),
+  modelId: z.string().min(1, "Model ID is required"),
   fields: z.array(FormFieldSchema).min(1, "At least one field is required"),
 });
 
@@ -28,6 +29,7 @@ export const CreateAutomatedServiceSchema = z.object({
   status: z.enum(["active", "inactive"]),
   swaggerUrl: z.string().url("Invalid swagger URL"),
   endpointUrl: z.string().url("Invalid endpoint URL"),
+  modelId: z.string().min(1, "Model ID is required"),
 });
 
 export const UpdateServiceSchema = z.object({
@@ -39,6 +41,7 @@ export const UpdateServiceSchema = z.object({
   endpointUrl: z.string().url().optional(),
   apiKey: z.string().min(1).optional(),
   apiKeyHeader: z.string().min(1).optional(),
+  modelId: z.string().min(1).optional(),
   jsonSchema: z.object({}).optional(),
 });
 

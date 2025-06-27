@@ -36,6 +36,7 @@ interface Service {
   endpointUrl?: string;
   apiKey?: string;
   apiKeyHeader?: string;
+  modelId?: string;
   jsonSchema?: object;
   createdAt: string;
   updatedAt: string;
@@ -59,6 +60,7 @@ interface EditFormData {
   endpointUrl: string;
   apiKey: string;
   apiKeyHeader: string;
+  modelId: string;
   swaggerUrl: string;
   fields: FormField[];
 }
@@ -153,6 +155,7 @@ export default function ManageServicesPage() {
     endpointUrl: "",
     apiKey: "",
     apiKeyHeader: "",
+    modelId: "",
     swaggerUrl: "",
     fields: [],
   });
@@ -309,6 +312,7 @@ export default function ManageServicesPage() {
       endpointUrl: service.endpointUrl || "",
       apiKey: service.apiKey || "",
       apiKeyHeader: service.apiKeyHeader || "",
+      modelId: service.modelId || "",
       swaggerUrl: service.swaggerUrl || "",
       fields,
     });
@@ -325,6 +329,7 @@ export default function ManageServicesPage() {
         iconName: editFormData.iconName,
         gradient: editFormData.gradient,
         status: editFormData.status,
+        modelId: editFormData.modelId,
       };
 
       // Add type-specific fields
@@ -578,6 +583,26 @@ export default function ManageServicesPage() {
                     }))
                   }
                 />
+              </div>
+
+              {/* Model ID */}
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  ID du modèle d'IA
+                </label>
+                <Input
+                  placeholder="Ex: gpt-4, claude-3-sonnet, llama-2-70b"
+                  value={editFormData.modelId}
+                  onChange={(e) =>
+                    setEditFormData((prev) => ({
+                      ...prev,
+                      modelId: e.target.value,
+                    }))
+                  }
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Identifiant du modèle d'IA à utiliser pour ce service
+                </p>
               </div>
             </div>
 
@@ -952,7 +977,11 @@ export default function ManageServicesPage() {
               </Button>
               <Button
                 onClick={handleUpdateService}
-                disabled={!editFormData.title || !editFormData.description}
+                disabled={
+                  !editFormData.title ||
+                  !editFormData.description ||
+                  !editFormData.modelId
+                }
                 className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
               >
                 <Save className="w-4 h-4 mr-2" />

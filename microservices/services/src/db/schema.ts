@@ -10,14 +10,20 @@ export interface ServiceDocument {
   endpointUrl?: string; // For manual services - the actual LLM API endpoint
   apiKey?: string; // For manual services - API key for authentication
   apiKeyHeader?: string; // For manual services - HTTP header name for the API key
+  modelId?: string; // AI model identifier (e.g., "gpt-4", "claude-3-sonnet")
   jsonSchema?: object; // Generated JSON Schema for dynamic forms
   createdAt: Date;
   updatedAt: Date;
   createdBy: string; // User ID who created the service
 }
 
-export type ServiceDocumentInsert = Omit<ServiceDocument, "createdAt" | "updatedAt">;
-export type ServiceDocumentUpdate = Partial<Omit<ServiceDocument, "_id" | "createdAt" | "updatedAt">>;
+export type ServiceDocumentInsert = Omit<
+  ServiceDocument,
+  "createdAt" | "updatedAt"
+>;
+export type ServiceDocumentUpdate = Partial<
+  Omit<ServiceDocument, "_id" | "createdAt" | "updatedAt">
+>;
 
 export interface FormField {
   id: number;

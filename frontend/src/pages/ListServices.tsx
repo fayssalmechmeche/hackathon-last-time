@@ -141,6 +141,7 @@ interface FormData {
   endpointUrl: string;
   apiKey: string;
   apiKeyHeader: string;
+  modelId: string;
   fields: FormField[];
   iconName: string;
   status: "active" | "inactive";
@@ -466,6 +467,7 @@ export default function AdminServicesPage() {
     endpointUrl: "",
     apiKey: "",
     apiKeyHeader: "",
+    modelId: "",
     fields: [],
     iconName: "Settings",
     status: "active",
@@ -490,6 +492,7 @@ export default function AdminServicesPage() {
       endpointUrl: "",
       apiKey: "",
       apiKeyHeader: "",
+      modelId: "",
       fields: [],
       iconName: "Settings",
       status: "active",
@@ -590,6 +593,7 @@ export default function AdminServicesPage() {
           endpointUrl: formData.endpointUrl,
           apiKey: formData.apiKey,
           apiKeyHeader: formData.apiKeyHeader,
+          modelId: formData.modelId,
           fields: formData.fields,
         };
 
@@ -612,6 +616,7 @@ export default function AdminServicesPage() {
           endpointUrl: "",
           apiKey: "",
           apiKeyHeader: "",
+          modelId: "",
           fields: [],
           iconName: "Settings",
           status: "active",
@@ -653,6 +658,7 @@ export default function AdminServicesPage() {
             endpointUrl: "",
             apiKey: "",
             apiKeyHeader: "",
+            modelId: "",
             fields: [],
             iconName: "Settings",
             status: "active",
@@ -982,6 +988,26 @@ export default function AdminServicesPage() {
                         }))
                       }
                     />
+                  </div>
+
+                  {/* Model ID */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      ID du modèle d'IA
+                    </label>
+                    <Input
+                      placeholder="Ex: gpt-4, claude-3-sonnet, llama-2-70b"
+                      value={formData.modelId}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          modelId: e.target.value,
+                        }))
+                      }
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Identifiant du modèle d'IA à utiliser pour ce service
+                    </p>
                   </div>
 
                   {/* Endpoint URL - only for manual services */}

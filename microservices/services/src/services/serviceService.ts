@@ -38,6 +38,7 @@ export async function handleCreateManualService(
     endpointUrl: serviceData.endpointUrl,
     apiKey: serviceData.apiKey,
     apiKeyHeader: serviceData.apiKeyHeader,
+    modelId: serviceData.modelId,
     jsonSchema,
     createdBy: userId,
   };
@@ -68,6 +69,7 @@ export async function handleCreateAutomatedService(
     type: "automatic" as const,
     swaggerUrl: serviceData.swaggerUrl,
     endpointUrl: serviceData.endpointUrl,
+    modelId: serviceData.modelId,
     jsonSchema,
     createdBy: userId,
   };
