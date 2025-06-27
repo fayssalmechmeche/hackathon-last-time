@@ -25,10 +25,8 @@ import {
   Cpu,
   Database,
   Download,
-  CornerDownRight,
   ChevronDown,
   ChevronRight,
-  MoreVertical,
   Eye,
   FileText,
   Fish,
@@ -138,6 +136,7 @@ interface FormField {
   options?: string[];
   children?: FormField[]; // Added for nested fields
   expanded?: boolean; // Nouveau: pour gérer l'état d'expansion
+  linkedBodyField?: string; // ID du champ body lié
 }
 
 interface FormData {
@@ -685,6 +684,29 @@ export default function AdminServicesPage() {
   const [selectedRoute, setSelectedRoute] = useState("");
   const [host, setHost] = useState("");
 
+  // Fonction utilitaire pour récupérer tous les champs du body de manière récursive
+  const getAllBodyFields = (
+    fields: FormField[],
+    prefix = ""
+  ): Array<{ id: string; label: string; path: string }> => {
+    const result: Array<{ id: string; label: string; path: string }> = [];
+
+    fields.forEach((field) => {
+      const currentPath = prefix ? `${prefix}.${field.label}` : field.label;
+      result.push({
+        id: field.id.toString(),
+        label: field.label || "Champ sans nom",
+        path: currentPath,
+      });
+
+      if (field.children && field.children.length > 0) {
+        result.push(...getAllBodyFields(field.children, currentPath));
+      }
+    });
+
+    return result;
+  };
+
   const handleAddService = () => {
     setIsModalOpen(true);
     setModalStep(1);
@@ -858,167 +880,6 @@ export default function AdminServicesPage() {
     });
   };
 
-  const renderBodyField = (field: FormField, indentLevel: number = 0) => (
-    <div
-      key={field.id}
-      className={`flex items-start gap-2 mb-4 p-3 rounded-md border border-dashed border-gray-700 bg-gray-800 ${
-        indentLevel > 0 ? "ml-" + indentLevel * 4 : ""
-      }`}
-    >
-      <div className="flex-grow space-y-2">
-        <div className="flex items-center gap-2">
-          {indentLevel > 0 && (
-            <CornerRightDown className="w-4 h-4 text-gray-500" />
-          )}
-          <span className="text-sm font-medium text-white flex-shrink-0 w-24">
-            {getFieldIcon(field.type)} {field.type.toUpperCase()}
-          </span>
-          <Input
-            placeholder="Label du champ"
-            value={field.label}
-            onChange={(e) =>
-              setFormData((prev) => ({
-                ...prev,
-                bodyStructure: updateBodyField(
-                  field.id,
-                  { label: e.target.value },
-                  prev.bodyStructure
-                ),
-              }))
-            }
-            className="flex-grow"
-          />
-          <label className="flex items-center gap-2 text-sm text-gray-400">
-            <input
-              type="checkbox"
-              checked={field.required}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  bodyStructure: updateBodyField(
-                    field.id,
-                    { required: e.target.checked },
-                    prev.bodyStructure
-                  ),
-                }))
-              }
-              className="form-checkbox text-purple-600"
-            />
-            Requis
-          </label>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() =>
-              setFormData((prev) => ({
-                ...prev,
-                bodyStructure: removeBodyField(field.id, prev.bodyStructure),
-              }))
-            }
-            className="flex-shrink-0"
-          >
-            <Minus className="w-4 h-4" />
-          </Button>
-        </div>
-
-        {field.type === "select" && (
-          <div className="ml-8 space-y-2">
-            <h4 className="text-sm font-medium text-gray-300">Options:</h4>
-            {field.options?.map((option, idx) => (
-              <div key={idx} className="flex items-center gap-2">
-                <Input
-                  placeholder={`Option ${idx + 1}`}
-                  value={option}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      bodyStructure: updateBodySelectOption(
-                        field.id,
-                        idx,
-                        e.target.value,
-                        prev.bodyStructure
-                      ),
-                    }))
-                  }
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      bodyStructure: removeBodySelectOption(
-                        field.id,
-                        idx,
-                        prev.bodyStructure
-                      ),
-                    }))
-                  }
-                >
-                  <Minus className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() =>
-                setFormData((prev) => ({
-                  ...prev,
-                  bodyStructure: addBodySelectOption(
-                    field.id,
-                    prev.bodyStructure
-                  ),
-                }))
-              }
-            >
-              Ajouter une option
-            </Button>
-          </div>
-        )}
-
-        {field.type === "object" && (
-          <div className="ml-8 space-y-2 p-2 border-l border-gray-700">
-            <h4 className="text-sm font-medium text-gray-300 mb-2">
-              Sous-champs:
-            </h4>
-            {field.children?.map((childField) =>
-              renderBodyField(childField, indentLevel + 1)
-            )}
-            <div className="flex gap-2 mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => addBodyField("text", field.id)}
-              >
-                <Plus className="w-4 h-4 mr-2" /> Texte
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => addBodyField("number", field.id)}
-              >
-                <Plus className="w-4 h-4 mr-2" /> Nombre
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => addBodyField("object", field.id)}
-              >
-                <Plus className="w-4 h-4 mr-2" /> Objet
-              </Button>
-              {/* Add other types as needed for sub-fields */}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   const addBodyField = (type: FormField["type"]) => {
     const newField: FormField = {
       id: Date.now(),
@@ -1034,26 +895,55 @@ export default function AdminServicesPage() {
     }));
   };
 
-  const updateBodyField = (index: number, updatedField: FormField) => {
-    setFormData((prev) => {
-      const newStructure = [...prev.bodyStructure];
-      newStructure[index] = updatedField;
-      return { ...prev, bodyStructure: newStructure };
+  const updateBodyField = (
+    fieldId: number,
+    updates: Partial<FormField>,
+    fields: FormField[]
+  ): FormField[] => {
+    return fields.map((field) => {
+      if (field.id === fieldId) {
+        return { ...field, ...updates };
+      }
+      if (field.children) {
+        return {
+          ...field,
+          children: updateBodyField(fieldId, updates, field.children),
+        };
+      }
+      return field;
     });
   };
 
-  const removeBodyField = (index: number) => {
-    setFormData((prev) => {
-      const newStructure = [...prev.bodyStructure];
-      newStructure.splice(index, 1);
-      return { ...prev, bodyStructure: newStructure };
+  const removeBodyField = (
+    fieldId: number,
+    fields: FormField[]
+  ): FormField[] => {
+    return fields.filter((field) => {
+      if (field.id === fieldId) {
+        return false;
+      }
+      if (field.children) {
+        field.children = removeBodyField(fieldId, field.children);
+      }
+      return true;
     });
   };
 
   const handleSaveService = async () => {
     try {
-      // Only handle manual services for now (as per requirements)
+      // Validation pour les services manuels
       if (serviceType === "manual") {
+        // Vérifier si au moins un champ est lié au body
+        const linkedFields = formData.fields.filter(
+          (field) => field.linkedBodyField
+        );
+        if (formData.bodyStructure.length > 0 && linkedFields.length === 0) {
+          toast.error(
+            "Veuillez lier au moins un champ du formulaire à un champ du body"
+          );
+          return;
+        }
+
         const serviceData: CreateManualServiceRequest = {
           title: formData.title,
           description: formData.description,
@@ -1063,8 +953,15 @@ export default function AdminServicesPage() {
           endpointUrl: formData.endpointUrl,
           apiKey: formData.apiKey,
           apiKeyHeader: formData.apiKeyHeader,
-          fields: formData.fields,
-          bodyStructure: formData.bodyStructure, // Include bodyStructure
+          fields: formData.fields.map((field) => ({
+            id: field.id,
+            type: field.type === "object" ? "text" : field.type, // Convertir "object" en "text" pour le backend
+            label: field.label,
+            required: field.required,
+            options: field.options,
+            linkedBodyField: field.linkedBodyField,
+          })),
+          // bodyStructure: formData.bodyStructure, // TODO: Ajouter au backend
         };
 
         await servicesApiMethods.createManualService(serviceData);
@@ -1637,9 +1534,37 @@ export default function AdminServicesPage() {
 
                       {/* Dynamic Form Fields for Query Parameters/Headers */}
                       <div className="mt-8">
-                        <h3 className="text-lg font-semibold mb-4">
-                          Champs du formulaire
-                        </h3>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold">
+                            Champs du formulaire
+                          </h3>
+                          <div className="text-sm text-gray-500 flex items-center gap-2">
+                            <Info className="w-4 h-4" />
+                            <span>Liez les champs aux données du body</span>
+                          </div>
+                        </div>
+
+                        {/* Guide d'utilisation */}
+                        <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg border">
+                          <h4 className="font-medium mb-2 text-gray-800 dark:text-gray-200">
+                            💡 Comment ça marche ?
+                          </h4>
+                          <ol className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            <li>
+                              1. Créez d'abord la structure du corps de la
+                              requête (Body) ci-dessous
+                            </li>
+                            <li>2. Ajoutez ensuite vos champs de formulaire</li>
+                            <li>
+                              3. Liez chaque champ du formulaire à un champ du
+                              body
+                            </li>
+                            <li>
+                              4. Les données saisies iront automatiquement au
+                              bon endroit dans la requête
+                            </li>
+                          </ol>
+                        </div>
                         {formData.fields.map((field) => (
                           <div
                             key={field.id}
@@ -1692,6 +1617,51 @@ export default function AdminServicesPage() {
                               />
                               Requis
                             </label>
+
+                            {/* Liaison avec le champ du body */}
+                            <div className="flex-grow space-y-2">
+                              <label className="block text-sm font-medium text-muted-foreground">
+                                Lier au champ du body
+                                {!field.linkedBodyField && (
+                                  <span className="text-xs text-orange-500 ml-2 flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" />
+                                    Non lié
+                                  </span>
+                                )}
+                                {field.linkedBodyField && (
+                                  <span className="text-xs text-green-500 ml-2 flex items-center gap-1">
+                                    <CheckCircle className="w-3 h-3" />
+                                    Lié
+                                  </span>
+                                )}
+                              </label>
+                              <select
+                                value={field.linkedBodyField || ""}
+                                onChange={(e) =>
+                                  updateField(field.id, {
+                                    linkedBodyField: e.target.value,
+                                  })
+                                }
+                                className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                  !field.linkedBodyField
+                                    ? "border-orange-500 bg-orange-50 dark:bg-orange-950"
+                                    : "border-green-500 bg-green-50 dark:bg-green-950"
+                                }`}
+                              >
+                                <option value="">-- Aucune liaison --</option>
+                                {getAllBodyFields(formData.bodyStructure).map(
+                                  (bodyField) => (
+                                    <option
+                                      key={bodyField.id}
+                                      value={bodyField.id}
+                                    >
+                                      {bodyField.path}
+                                    </option>
+                                  )
+                                )}
+                              </select>
+                            </div>
+
                             <Button
                               type="button"
                               variant="destructive"
@@ -1784,6 +1754,42 @@ export default function AdminServicesPage() {
                           </Button>
                         </div>
                       </div>
+
+                      {/* Aperçu des liaisons */}
+                      {formData.fields.some(
+                        (field) => field.linkedBodyField
+                      ) && (
+                        <div className="mt-8 p-4 border border-blue-600 rounded-lg bg-blue-50 dark:bg-blue-950">
+                          <h4 className="text-lg font-semibold mb-3 text-blue-800 dark:text-blue-200">
+                            🔗 Aperçu des liaisons
+                          </h4>
+                          <div className="space-y-2">
+                            {formData.fields
+                              .filter((field) => field.linkedBodyField)
+                              .map((field) => {
+                                const linkedBodyField = getAllBodyFields(
+                                  formData.bodyStructure
+                                ).find((bf) => bf.id === field.linkedBodyField);
+                                return (
+                                  <div
+                                    key={field.id}
+                                    className="flex items-center gap-2 text-sm"
+                                  >
+                                    <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded">
+                                      📝 {field.label || "Champ sans nom"}
+                                    </span>
+                                    <ArrowRight className="w-4 h-4 text-gray-500" />
+                                    <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded">
+                                      🎯{" "}
+                                      {linkedBodyField?.path || "Champ inconnu"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="mt-8">
                         <h3 className="text-lg font-semibold mb-4 flex items-center">
                           <Code className="mr-2" />
@@ -1791,14 +1797,29 @@ export default function AdminServicesPage() {
                         </h3>
 
                         {formData.bodyStructure.length > 0 ? (
-                          formData.bodyStructure.map((field, index) => (
+                          formData.bodyStructure.map((field) => (
                             <NestedField
                               key={field.id}
                               field={field}
                               onUpdate={(updatedField) =>
-                                updateBodyField(index, updatedField)
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  bodyStructure: updateBodyField(
+                                    field.id,
+                                    updatedField,
+                                    prev.bodyStructure
+                                  ),
+                                }))
                               }
-                              onRemove={() => removeBodyField(index)}
+                              onRemove={() =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  bodyStructure: removeBodyField(
+                                    field.id,
+                                    prev.bodyStructure
+                                  ),
+                                }))
+                              }
                               onAddChild={(type) => {
                                 const newField: FormField = {
                                   id: Date.now(),
@@ -1808,15 +1829,20 @@ export default function AdminServicesPage() {
                                   expanded: true,
                                 };
 
-                                const updatedField = {
-                                  ...field,
-                                  children: [
-                                    ...(field.children || []),
-                                    newField,
-                                  ],
-                                };
-
-                                updateBodyField(index, updatedField);
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  bodyStructure: updateBodyField(
+                                    field.id,
+                                    {
+                                      ...field,
+                                      children: [
+                                        ...(field.children || []),
+                                        newField,
+                                      ],
+                                    },
+                                    prev.bodyStructure
+                                  ),
+                                }));
                               }}
                               depth={0}
                             />
@@ -1873,6 +1899,24 @@ export default function AdminServicesPage() {
                   >
                     Annuler
                   </Button>
+
+                  {serviceType === "manual" && (
+                    <div className="flex items-center gap-2 text-sm">
+                      {formData.bodyStructure.length > 0 && (
+                        <>
+                          <span className="text-gray-500">Liaisons:</span>
+                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
+                            {
+                              formData.fields.filter((f) => f.linkedBodyField)
+                                .length
+                            }{" "}
+                            / {formData.fields.length}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+
                   <Button onClick={handleSaveService}>Créer le service</Button>
                 </div>
               </div>
