@@ -1,6 +1,5 @@
 import { createBrowserRouter, RouterProvider } from "react-router";
 import ProtectedRoute from "./components/ProtectedRoute";
-import ServicesPage from "./pages/DisplayServices";
 import EditProfilePage from "./pages/EditProfilePage";
 import HomePage from "./pages/HomePage";
 import ListServices from "./pages/ListServices";
@@ -37,7 +36,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/services",
-    element: <ServicesPage />,
+    element: (
+      <ProtectedRoute>
+        <ListServices />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/services/list",
