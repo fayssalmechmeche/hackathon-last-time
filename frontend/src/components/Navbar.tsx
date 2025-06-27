@@ -84,9 +84,6 @@ export default function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">
-                <DropdownMenuItem onClick={() => navigate("/services/list")}>
-                  Créer un service
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/services/manage")}>
                   Gérer mes services
                 </DropdownMenuItem>
@@ -149,16 +146,6 @@ export default function Navbar() {
                   }}
                 >
                   Services
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="justify-start"
-                  onClick={() => {
-                    navigate("/services/list");
-                    setIsMenuOpen(false);
-                  }}
-                >
-                  Créer un service
                 </Button>
                 <Button
                   variant="ghost"
